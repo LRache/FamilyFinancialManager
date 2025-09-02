@@ -8,11 +8,20 @@
 
 - 金额统一以最小单位分传递
 
+- 响应结构:
+
+```json
+{
+  "message": "string",
+  "response": 相应包裹
+}
+```
+
 ## 用户鉴权
 
 ### 注册
 
-`POST /v1/auth/register`
+`POST /api/v1/auth/register`
 
 请求体
 
@@ -27,14 +36,14 @@
 
 ```json
 {
-  "uuid": "string",
+  "userid": 0,
   "username": "string",
 }
 ```
 
 ### 登录
 
-`POST /v1/auth/login`
+`POST /api/v1/auth/login`
 
 请求体
 
@@ -58,7 +67,7 @@
 
 ### 家庭成员邀请
 
-`POST /v1/family/invite`
+`POST /api/v1/family/invite`
 
 请求体
 
@@ -80,7 +89,7 @@
 
 ### 家庭成员列表
 
-`GET /v1/family/members`
+`GET /api/v1/family/members`
 
 响应包裹
 
@@ -99,7 +108,7 @@
 
 ### 上传账单
 
-`POST /v1/bills`
+`POST /api/v1/bills`
 
 请求体
 
@@ -115,7 +124,7 @@
 
 ### 查询账单
 
-`GET /v1/bills`
+`GET /api/v1/bills`
 
 请求参数
 
@@ -148,7 +157,7 @@
 
 ### 添加定期收支
 
-`POST /v1/bills/recurring`
+`POST /api/v1/bills/recurring`
 
 请求体
 
@@ -179,7 +188,7 @@
 
 ### 查询定期收支
 
-`GET /v1/bills/recurring`
+`GET /api/v1/bills/recurring`
 
 响应包裹
 
@@ -203,7 +212,7 @@
 
 ### 设置预算
 
-`POST /v1/budget`
+`POST /api/v1/budget`
 
 请求体
 
@@ -218,7 +227,7 @@
 
 ### 查询预算
 
-`GET /v1/budget`
+`GET /api/v1/budget`
 
 ```json
 {
@@ -234,7 +243,7 @@
 
 ### 查询支出统计
 
-```GET /v1/outcomes/stats```
+```GET /api/v1/outcomes/stats```
 
 请求参数
 
@@ -257,7 +266,7 @@
 
 ### 查询收入统计
 
-```GET /v1/bills/income/stats```
+```GET /api/v1/bills/income/stats```
 
 请求参数
 
