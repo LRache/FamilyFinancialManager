@@ -20,3 +20,16 @@ func RegisterUser(ctx *gin.Context) {
 
 	ResultToResponse(ctx, result)
 }
+
+func UserLogin(ctx *gin.Context) {
+	var req request.UserLogin
+	err := ctx.ShouldBind(&req)
+	if err != nil {
+		response.BadRequest(ctx, err.Error())
+		return
+	}
+
+	result := service.UserLogin(req.Username, req.Password)
+
+	ResultToResponse(ctx, result)
+}

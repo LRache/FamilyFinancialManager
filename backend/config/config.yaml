@@ -1,0 +1,12 @@
+app:
+  host: localhost
+  port: 8080
+  router_prefix: api/v1
+  jwt_secret: 050302
+
+database:
+  host: lemonyaweb.top
+  port: 3306
+  username: rache
+  password: "050302"
+  dbname: rache_familyfinacialmanager

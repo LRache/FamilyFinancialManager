@@ -31,3 +31,17 @@ func RegisterUser(username string, password string) *Result {
 		Token:    GenerateAuthToken(id),
 	}}
 }
+
+func UserLogin(username string, password string) *Result {
+	id, err := repository.UserLogin(username, password)
+	if err != nil {
+		logger.Warn("Internal server error", err.Error())
+		return &Result{Code: http.StatusInternalServerError, Message: "Internal server error"}
+	}
+
+	if id == -1 {
+		return &Result{Code: http.StatusUnauthorized, Message: "Invalid username or password"}
+	}
+
+	return &Result{Code: http.StatusOK, Message: "User logged in successfully"}
+}

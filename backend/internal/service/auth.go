@@ -17,7 +17,7 @@ func GenerateAuthToken(userId int) string {
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	s, err := token.SignedString([]byte(config.Cfg.App.JwtSecret))
+	s, err := token.SignedString([]byte(config.App.JwtSecret))
 	if err != nil {
 		logger.Warn("Failed to generate auth token", err.Error())
 		return ""
