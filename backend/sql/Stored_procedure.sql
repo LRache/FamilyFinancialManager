@@ -4,7 +4,6 @@ DELIMITER //
 CREATE PROCEDURE sp_register_api (
     IN p_username VARCHAR(50),
     IN p_password VARCHAR(255),
-    IN p_family_id INT,
     OUT p_user_id INT
 )
 BEGIN
@@ -16,8 +15,8 @@ BEGIN
         SET p_user_id = NULL;
     ELSE
         -- 插入新用户
-        INSERT INTO Users (UUID, UserName, Password, FamilyID)
-        VALUES (UUID(), p_username, p_password, p_family_id);
+        INSERT INTO Users (UserName, Password)
+        VALUES (p_username, p_password);
         SET p_user_id = LAST_INSERT_ID();
     END IF;
 END//
