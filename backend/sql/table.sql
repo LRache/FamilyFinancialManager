@@ -167,7 +167,6 @@ DROP TABLE IF EXISTS `Users`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `Users` (
   `UserID` int NOT NULL AUTO_INCREMENT COMMENT '用户ID',
-  `UUID` char(36) NOT NULL COMMENT '用户唯一标识，用于API返回',
   `UserName` varchar(50) NOT NULL COMMENT '用户名',
   `Password` varchar(255) NOT NULL COMMENT '加密密码',
   `Email` varchar(100) DEFAULT NULL COMMENT '用户邮箱',
@@ -176,7 +175,6 @@ CREATE TABLE `Users` (
   `CreatedAt` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '注册时间',
   `UpdatedAt` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`UserID`),
-  UNIQUE KEY `UUID` (`UUID`),
   UNIQUE KEY `UserName` (`UserName`),
   UNIQUE KEY `Email` (`Email`),
   KEY `FK_User_Family` (`FamilyID`),
