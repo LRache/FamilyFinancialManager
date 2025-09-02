@@ -4,6 +4,10 @@
 -- ------------------------------------------------------
 -- Server version	9.4.0
 
+-- create database family;
+-- use family;
+
+
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
@@ -171,7 +175,6 @@ CREATE TABLE `Users` (
   `Password` varchar(255) NOT NULL COMMENT '加密密码',
   `Email` varchar(100) DEFAULT NULL COMMENT '用户邮箱',
   `FamilyID` int DEFAULT NULL COMMENT '所属家庭ID',
-  `Token` varchar(255) DEFAULT NULL COMMENT '登录token，用于自动登录',
   `CreatedAt` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '注册时间',
   `UpdatedAt` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`UserID`),
