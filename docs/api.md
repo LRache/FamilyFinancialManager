@@ -64,7 +64,7 @@
 
 ```json
 {
-  "email": "string"
+  "username": "string"
 }
 ```
 
@@ -72,8 +72,7 @@
 
 ```json
 {
-  "uuid": "string",
-  "email": "string",
+  "username": "string",
   "status": "string"
 }
 ```
