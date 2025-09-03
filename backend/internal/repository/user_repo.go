@@ -22,15 +22,13 @@ func CreateUser(username string, password string) (int, error) {
 }
 
 func UserExists(username string) (bool, error) {
-	var user model.User
-	err := DB.Where("UserName = ?", username).First(&user).Error
+	var count int64
+	query := DB.Table("Users")
+	err := query.Where("UserName = ?", username).Count(&count).Error
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return false, nil
-		}
 		return false, err
 	}
-	return true, nil
+	return count > 0, nil
 }
 
 func UserLogin(username string, password string) (int, error) {
@@ -43,4 +41,30 @@ func UserLogin(username string, password string) (int, error) {
 		return -1, err
 	}
 	return user.UserID, nil
+}
+
+// GetUserByUsername 根据用户名获取用户信息
+func GetUserByUsername(username string) (*model.User, error) {
+	var user model.User
+	err := DB.Where("username = ?", username).First(&user).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &user, nil
+}
+
+// GetUserByID 根据用户ID获取用户信息
+func GetUserByID(userID int) (*model.User, error) {
+	var user model.User
+	err := DB.Where("userid = ?", userID).First(&user).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &user, nil
 }

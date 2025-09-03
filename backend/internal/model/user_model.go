@@ -1,14 +1,12 @@
 package model
 
 type User struct {
-	UserID    int    `gorm:"column:UserID;primaryKey"`
-	UserName  string `gorm:"column:UserName;unique"`
-	Password  string `gorm:"column:Password"`
-	Email     string `gorm:"column:Email"`
-	FamilyID  int    `gorm:"column:FamilyID"`
-	Token     string `gorm:"column:Token"`
-	CreatedAt string `gorm:"column:CreatedAt"`
-	UpdatedAt string `gorm:"column:UpdatedAt"`
+	UserID   int     `gorm:"column:userid;primaryKey;autoIncrement" json:"userid"`
+	UserName string  `gorm:"column:username;not null" json:"username"`
+	Password string  `gorm:"column:password;not null" json:"-"`
+	Email    *string `gorm:"column:email;unique" json:"email"`
+	FamilyID *int    `gorm:"column:familyid" json:"familyid"`
+	Role     int     `gorm:"column:role;not null;default:0" json:"role"` // 0=家庭成员，1=家庭管理员
 }
 
 func (User) TableName() string {

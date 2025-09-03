@@ -8,40 +8,45 @@ import (
 	"github.com/wonderivan/logger"
 )
 
-func RegisterUser(username string, password string) *Result {
+func RegisterUser(username string, password string) *Result[response.UserLogin] {
 	ok, err := repository.UserExists(username)
 	if err != nil {
 		logger.Warn("Internal server error", err.Error())
-		return &Result{Code: http.StatusInternalServerError, Message: "Internal server error"}
+		return ResultFailed[response.UserLogin](http.StatusInternalServerError, "Internal server error")
 	}
 
 	if ok {
-		return &Result{Code: http.StatusConflict, Message: "User already exists"}
+		return ResultFailed[response.UserLogin](http.StatusConflict, "User already exists")
 	}
 
 	id, err := repository.CreateUser(username, password)
 	if err != nil {
 		logger.Warn("Internal server error", err.Error())
-		return &Result{Code: http.StatusInternalServerError, Message: "Internal server error"}
+		return ResultFailed[response.UserLogin](http.StatusInternalServerError, "Internal server error")
 	}
 
-	return &Result{Code: http.StatusOK, Message: "User registered successfully", Data: &response.UserLogin{
-		Username: username,
-		ID:       id,
-		Token:    GenerateAuthToken(id),
-	}}
+	// 注册成功后直接生成token
+	token := GenerateAuthToken(id)
+
+	return ResultOK(response.UserLogin{
+		Token: token,
+	})
 }
 
-func UserLogin(username string, password string) *Result {
+func UserLogin(username string, password string) *Result[response.UserLogin] {
 	id, err := repository.UserLogin(username, password)
 	if err != nil {
 		logger.Warn("Internal server error", err.Error())
-		return &Result{Code: http.StatusInternalServerError, Message: "Internal server error"}
+		return ResultFailed[response.UserLogin](http.StatusInternalServerError, "Internal server error")
 	}
 
 	if id == -1 {
-		return &Result{Code: http.StatusUnauthorized, Message: "Invalid username or password"}
+		return ResultFailed[response.UserLogin](http.StatusUnauthorized, "Invalid username or password")
 	}
 
-	return &Result{Code: http.StatusOK, Message: "User logged in successfully"}
+	token := GenerateAuthToken(id)
+
+	return ResultOK(response.UserLogin{
+		Token: token,
+	})
 }

@@ -18,7 +18,7 @@ func RegisterUser(ctx *gin.Context) {
 
 	result := service.RegisterUser(req.Username, req.Password)
 
-	ResultToResponse(ctx, result)
+	ResultToResponse(ctx, result, result.Data)
 }
 
 func UserLogin(ctx *gin.Context) {
@@ -31,5 +31,5 @@ func UserLogin(ctx *gin.Context) {
 
 	result := service.UserLogin(req.Username, req.Password)
 
-	ResultToResponse(ctx, result)
+	ResultToResponse(ctx, result, result.Data)
 }
