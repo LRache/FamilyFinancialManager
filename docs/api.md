@@ -8,14 +8,14 @@
 
 - 金额统一以最小单位分传递
 
+- 每次用户请求需要携带用户`token`用于鉴权
+
 - 响应结构:
 
-```json
-{
-  "message": "string",
-  "response": 相应包裹
-}
-```
+| 字段      | 类型   | 说明     |
+| --------- | ------ | -------- |
+| message   | string | 信息     |
+| response  | object | 相应包裹 |
 
 ## 用户鉴权
 
@@ -25,21 +25,17 @@
 
 请求体
 
-```json
-{
-  "username": "string",
-  "password": "string",
-}
-```
+| 字段      | 类型   | 说明   |
+| --------- | ------ | ------ |
+| username  | string | 用户名 |
+| password  | string | 密码   |
 
 响应包裹
 
-```json
-{
-  "userid": 0,
-  "username": "string",
-}
-```
+| 字段      | 类型   | 说明   |
+| --------- | ------ | ------ |
+| userid    | number | 用户ID |
+| username  | string | 用户名 |
 
 ### 登录
 
@@ -47,44 +43,39 @@
 
 请求体
 
-```json
-{
-  "username": "string",
-  "password": "string"
-}
-```
+| 字段      | 类型   | 说明   |
+| --------- | ------ | ------ |
+| username  | string | 用户名 |
+| password  | string | 密码   |
 
 响应包裹
 
-```json
-{
-  "uuid": "string",
-  "token": "string", // 用于自动登录的token
-}
-```
+| 字段      | 类型   | 说明             |
+| --------- | ------ | ---------------- |
+| token     | string | 自动登录token    |
 
 ## 家庭成员管理
 
+### 创建家庭
+
+`POST /api/v1/family`
+
 ### 家庭成员邀请
 
-`POST /api/v1/family/invite`
+`POST /api/v1/family/members`
 
 请求体
 
-```json
-{
-  "username": "string"
-}
-```
+| 字段      | 类型   | 说明   |
+| --------- | ------ | ------ |
+| username  | string | 用户名 |
 
 响应包裹
 
-```json
-{
-  "username": "string",
-  "status": "string"
-}
-```
+| 字段      | 类型   | 说明     |
+| --------- | ------ | -------- |
+| username  | string | 用户名   |
+| status    | string | 邀请状态 |
 
 ### 家庭成员列表
 
@@ -92,16 +83,16 @@
 
 响应包裹
 
-```json
-{
-  "members": [
-    {
-      "username": "string",
-      "email": "string",
-    }
-  ]
-}
-```
+| 字段      | 类型     | 说明     |
+| --------- | -------- | -------- |
+| members   | array    | 成员列表 |
+
+成员对象：
+
+| 字段      | 类型   | 说明   |
+| --------- | ------ | ------ |
+| username  | string | 用户名 |
+| email     | string | 邮箱   |
 
 ## 账单管理
 
@@ -111,15 +102,13 @@
 
 请求体
 
-```json
-{
-  "type": 0, // 账单类型，0表示支出，1表示收入
-  "amount": 0, // 账单数额
-  "category": "", // 账单类别
-  "occurred_at": "", // 发生时间
-  "note": "string" // 备注
-}
-```
+| 字段        | 类型   | 说明                         |
+| ----------- | ------ | ---------------------------- |
+| type        | number | 账单类型（0表示支出，1表示收入） |
+| amount      | number | 账单数额                     |
+| category    | string | 账单类别                     |
+| occurred_at | string | 发生时间                     |
+| note        | string | 备注                         |
 
 ### 查询账单
 
@@ -127,32 +116,30 @@
 
 请求参数
 
-```json
-{
-  "type": 0, // 账单类型，0表示支出，1表示收入
-  "start_date": "", // 开始日期
-  "end_date": "", // 结束日期
-  "category": "", // 账单类别
-  "member": "" // 家庭成员
-}
-```
+| 字段        | 类型   | 说明                         |
+| ----------- | ------ | ---------------------------- |
+| type        | number | 账单类型（0表示支出，1表示收入） |
+| start_date  | string | 开始日期                     |
+| end_date    | string | 结束日期                     |
+| category    | string | 账单类别                     |
+| member      | string | 家庭成员                     |
 
 响应包裹
 
-```json
-{
-  "bills": [
-    {
-      "id": 0,
-      "type": 0,
-      "amount": 0,
-      "category": "string",
-      "occurred_at": 0,
-      "note": "string"
-    }
-  ]
-}
-```
+| 字段      | 类型   | 说明     |
+| --------- | ------ | -------- |
+| bills     | array  | 账单列表 |
+
+账单对象：
+
+| 字段        | 类型   | 说明       |
+| ----------- | ------ | ---------- |
+| id          | number | 账单ID     |
+| type        | number | 账单类型   |
+| amount      | number | 账单数额   |
+| category    | string | 账单类别   |
+| occurred_at | number | 发生时间戳 |
+| note        | string | 备注       |
 
 ### 添加定期收支
 
@@ -160,30 +147,26 @@
 
 请求体
 
-```json
-{
-  "type": 0, // 账单类型，0表示支出，1表示收入
-  "amount": 0, // 账单数额
-  "category": "", // 账单类别
-  "occurred_at": "", // 发生时间
-  "note": "string", // 备注
-  "interval": "monthly" // 账单周期，支持 daily, weekly, monthly
-}
-```
+| 字段        | 类型   | 说明                                |
+| ----------- | ------ | ----------------------------------- |
+| type        | number | 账单类型（0表示支出，1表示收入）      |
+| amount      | number | 账单数额                            |
+| category    | string | 账单类别                            |
+| occurred_at | string | 发生时间                            |
+| note        | string | 备注                                |
+| interval    | string | 账单周期（支持 daily, weekly, monthly） |
 
 响应包裹
 
-```json
-{
-  "id": 0,
-  "type": 0,
-  "amount": 0,
-  "category": "string",
-  "occurred_at": 0,
-  "note": "string",
-  "interval": "monthly"
-}
-```
+| 字段        | 类型   | 说明       |
+| ----------- | ------ | ---------- |
+| id          | number | 账单ID     |
+| type        | number | 账单类型   |
+| amount      | number | 账单数额   |
+| category    | string | 账单类别   |
+| occurred_at | number | 发生时间戳 |
+| note        | string | 备注       |
+| interval    | string | 账单周期   |
 
 ### 查询定期收支
 
@@ -191,21 +174,21 @@
 
 响应包裹
 
-```json
-{
-  "bills": [
-    {
-      "id": 0,
-      "type": 0,
-      "amount": 0,
-      "category": "string",
-      "occurred_at": 0,
-      "note": "string",
-      "interval": "monthly"
-    }
-  ]
-}
-```
+| 字段      | 类型   | 说明     |
+| --------- | ------ | -------- |
+| bills     | array  | 账单列表 |
+
+账单对象：
+
+| 字段        | 类型   | 说明       |
+| ----------- | ------ | ---------- |
+| id          | number | 账单ID     |
+| type        | number | 账单类型   |
+| amount      | number | 账单数额   |
+| category    | string | 账单类别   |
+| occurred_at | number | 发生时间戳 |
+| note        | string | 备注       |
+| interval    | string | 账单周期   |
 
 ## 预算和支出统计
 
@@ -215,30 +198,38 @@
 
 请求体
 
-```json
-{
-  "amount": 0,
-  "start_date": "",
-  "category": "string",
-  "note": "string"
-}
-```
+| 字段       | 类型   | 说明     |
+| ---------- | ------ | -------- |
+| amount     | number | 预算金额 |
+| start_date | string | 开始日期 |
+| category   | string | 预算类别 |
+| note       | string | 备注     |
 
 ### 查询预算
 
 `GET /api/v1/budget`
 
-```json
-{
-  "budget": {
-    "id": 0,
-    "start_date": "",
-    "amount": 0,
-    "category": "string",
-    "note": "string"
-  }
-}
-```
+请求参数
+
+| 字段       | 类型   | 说明     |
+| ---------- | ------ | -------- |
+| start_date | number | 开始日期 |
+| category   | string | 预算类别 |
+
+相应包裹
+
+| 字段      | 类型   | 说明     |
+| --------- | ------ | -------- |
+| budget    | object | 预算对象 |
+
+预算对象：
+
+| 字段       | 类型   | 说明     |
+| ---------- | ------ | -------- |
+| start_date | number | 开始日期 |
+| amount     | number | 预算金额 |
+| category   | string | 预算类别 |
+| note       | string | 备注     |
 
 ### 查询支出统计
 
@@ -246,22 +237,18 @@
 
 请求参数
 
-```json
-{
-  "start_date": "",
-  "end_date": "",
-  "category": "string"
-}
-```
+| 参数名     | 类型   | 描述           |
+| ---------- | ------ | -------------- |
+| start_date | number | 开始日期       |
+| end_date   | number | 结束日期       |
+| category   | string | 账单类别       |
 
 响应包裹
 
-```json
-{
-  "amount": 0,
-  "category": "string"
-}
-```
+| 字段      | 类型   | 说明 |
+| --------- | ------ | ---- |
+| amount    | number | 金额 |
+| category  | string | 类别 |
 
 ### 查询收入统计
 
@@ -269,19 +256,15 @@
 
 请求参数
 
-```json
-{
-  "start_date": "",
-  "end_date": "",
-  "category": "string"
-}
-```
+| 字段       | 类型   | 说明     |
+| ---------- | ------ | -------- |
+| start_date | string | 开始日期 |
+| end_date   | string | 结束日期 |
+| category   | string | 类别     |
 
 响应包裹
 
-```json
-{
-  "amount": 0,
-  "category": "string"
-}
-```
+| 字段      | 类型   | 说明 |
+| --------- | ------ | ---- |
+| amount    | number | 金额 |
+| category  | string | 类别 |
