@@ -16,6 +16,22 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `Budget`
+--
+
+DROP TABLE IF EXISTS `Budget`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `Budget` (
+  `familyid` int NOT NULL COMMENT '所属家庭编号',
+  `time` date NOT NULL COMMENT '预算对应的时间（按月或按年）',
+  `amount` decimal(10,2) NOT NULL COMMENT '预算金额',
+  PRIMARY KEY (`familyid`,`time`),
+  CONSTRAINT `FK_Budget_Family` FOREIGN KEY (`familyid`) REFERENCES `Family` (`familyid`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='家庭预算表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `Category`
 --
 
@@ -26,8 +42,9 @@ CREATE TABLE `Category` (
   `categoryid` int NOT NULL AUTO_INCREMENT COMMENT '分类ID',
   `categoryname` varchar(100) NOT NULL COMMENT '分类名称',
   `type` tinyint(1) NOT NULL COMMENT '收支类型，1=收入，0=支出',
+  `note` varchar(255) DEFAULT NULL COMMENT '备注',
   PRIMARY KEY (`categoryid`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='收支分类表';
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COMMENT='收支分类表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -40,9 +57,8 @@ DROP TABLE IF EXISTS `Family`;
 CREATE TABLE `Family` (
   `familyid` int NOT NULL AUTO_INCREMENT COMMENT '家庭ID',
   `familyname` varchar(100) NOT NULL COMMENT '家庭名称',
-  `monthbudget` decimal(10,2) DEFAULT '0.00' COMMENT '月度预算',
   PRIMARY KEY (`familyid`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='家庭表';
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COMMENT='家庭表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -70,7 +86,7 @@ CREATE TABLE `TransactionRecord` (
   CONSTRAINT `FK_Transaction_Category` FOREIGN KEY (`categoryid`) REFERENCES `Category` (`categoryid`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `FK_Transaction_Family` FOREIGN KEY (`familyid`) REFERENCES `Family` (`familyid`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `FK_Transaction_User` FOREIGN KEY (`userid`) REFERENCES `Users` (`userid`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='家庭收支记录表';
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COMMENT='家庭收支记录表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -86,11 +102,12 @@ CREATE TABLE `Users` (
   `password` varchar(255) NOT NULL COMMENT '加密密码',
   `email` varchar(100) DEFAULT NULL COMMENT '邮箱',
   `familyid` int DEFAULT NULL COMMENT '所属家庭ID',
+  `role` tinyint(1) NOT NULL DEFAULT '0' COMMENT '用户角色，0=家庭成员，1=家庭管理员',
   PRIMARY KEY (`userid`),
   UNIQUE KEY `email` (`email`),
   KEY `FK_User_Family` (`familyid`),
   CONSTRAINT `FK_User_Family` FOREIGN KEY (`familyid`) REFERENCES `Family` (`familyid`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户表';
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -102,4 +119,4 @@ CREATE TABLE `Users` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-09-03  8:39:12
+-- Dump completed on 2025-09-03 10:39:17

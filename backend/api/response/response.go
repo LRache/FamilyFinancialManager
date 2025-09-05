@@ -25,6 +25,12 @@ func BadRequest(c *gin.Context, message string) {
 	})
 }
 
+func Unauthorized(c *gin.Context, message string) {
+	c.JSON(http.StatusUnauthorized, gin.H{
+		"message": message,
+	})
+}
+
 func Success(response any) *CommonResponse {
 	return &CommonResponse{
 		http.StatusOK,

@@ -6,6 +6,7 @@ import (
 	"backend/internal/repository"
 	"backend/pkg/config"
 
+	"github.com/gin-gonic/gin"
 	"github.com/wonderivan/logger"
 )
 
@@ -20,9 +21,11 @@ func main() {
 		logger.Emer("Failed to init database: ", err.Error())
 	}
 
-	r := router.Init()
+	r := gin.Default()
 
-	r.Use(middleware.AuthVerify)
+	r.Use(middleware.Cors)
+
+	router.Init(r)
 
 	err = r.Run(config.App.Host + ":" + config.App.Port)
 

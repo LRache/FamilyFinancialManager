@@ -1,5 +1,5 @@
 app:
-  host: localhost
+  host: 0.0.0.0
   port: 8080
   router_prefix: api/v1
   jwt_secret: 050302
