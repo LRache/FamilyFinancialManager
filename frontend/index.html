@@ -79,7 +79,7 @@
 
         /* 主要内容区域 */
         .main-container {
-            max-width: 1200px;
+            max-width: 1100px;
             margin: 80px auto 20px;
             padding: 0 20px;
             display: grid;
@@ -198,7 +198,7 @@
         }
 
         .action-btn {
-            background: linear-gradient(135deg, #666 0%, #888 100%);
+            background: linear-gradient(135deg, #2b2b2b 0%, #979696 100%);
             color: white;
             border: none;
             padding: 12px 20px;
@@ -456,7 +456,12 @@
             .form-row {
                 grid-template-columns: 1fr;
             }
+            
         }
+        .jieyu{
+                font-size: 40px;
+                color: #28a745;
+            }
     </style>
 </head>
 <body>
@@ -501,26 +506,6 @@
                     <span>📉</span>
                     <span>支出管理</span>
                 </div>
-                <div class="menu-item" onclick="showPage('budget')">
-                    <span>📋</span>
-                    <span>预算管理</span>
-                </div>
-            </div>
-
-            <div class="sidebar-section">
-                <div class="sidebar-title">🏠 资产管理</div>
-                <div class="menu-item" onclick="showPage('assets')">
-                    <span>🏘️</span>
-                    <span>房产管理</span>
-                </div>
-                <div class="menu-item" onclick="showPage('investment')">
-                    <span>📈</span>
-                    <span>投资理财</span>
-                </div>
-                <div class="menu-item" onclick="showPage('loans')">
-                    <span>🏦</span>
-                    <span>贷款管理</span>
-                </div>
             </div>
 
             <div class="sidebar-section">
@@ -528,30 +513,6 @@
                 <div class="menu-item" onclick="showPage('statistics')">
                     <span>📊</span>
                     <span>数据统计</span>
-                </div>
-                <div class="menu-item" onclick="showPage('analysis')">
-                    <span>🔍</span>
-                    <span>智能分析</span>
-                </div>
-                <div class="menu-item" onclick="showPage('reports')">
-                    <span>📄</span>
-                    <span>财务报表</span>
-                </div>
-            </div>
-
-            <div class="sidebar-section">
-                <div class="sidebar-title">⚙️ 设置</div>
-                <div class="menu-item" onclick="showPage('categories')">
-                    <span>🏷️</span>
-                    <span>分类管理</span>
-                </div>
-                <div class="menu-item" onclick="showPage('family')">
-                    <span>👨‍👩‍👧‍👦</span>
-                    <span>家庭管理</span>
-                </div>
-                <div class="menu-item" onclick="showPage('settings')">
-                    <span>⚙️</span>
-                    <span>系统设置</span>
                 </div>
             </div>
         </aside>
@@ -564,27 +525,23 @@
             <div class="overview-cards">
                 <div class="overview-card">
                     <div class="card-icon">💰</div>
-                    <div class="card-title">本月收入</div>
-                    <div class="card-value">¥15,680</div>
-                    <div class="card-change positive">+12.5% 较上月</div>
+                    <div class="card-title ">本月收入</div>
+                    <div class="card-value ">¥12,920</div>
                 </div>
                 <div class="overview-card">
                     <div class="card-icon">💸</div>
                     <div class="card-title">本月支出</div>
                     <div class="card-value">¥8,920</div>
-                    <div class="card-change negative">+8.2% 较上月</div>
                 </div>
                 <div class="overview-card">
                     <div class="card-icon">💎</div>
                     <div class="card-title">本月结余</div>
-                    <div class="card-value">¥6,760</div>
-                    <div class="card-change positive">+18.3% 较上月</div>
+                    <div class="card-value"><span class="jieyu">¥6,760</span></div>
                 </div>
                 <div class="overview-card">
                     <div class="card-icon">📊</div>
-                    <div class="card-title">预算执行率</div>
-                    <div class="card-value">89.2%</div>
-                    <div class="card-change positive">良好</div>
+                    <div class="card-title">剩余预算</div>
+                    <div class="card-value">¥100</div>
                 </div>
             </div>
 
@@ -597,10 +554,6 @@
                 <button class="action-btn" onclick="openModal('expense')">
                     <span>➖</span>
                     <span>记录支出</span>
-                </button>
-                <button class="action-btn" onclick="openModal('transfer')">
-                    <span>🔄</span>
-                    <span>转账记录</span>
                 </button>
                 <button class="action-btn" onclick="openModal('budget')">
                     <span>📋</span>
@@ -764,6 +717,23 @@
         </div>
     </div>
 
+     <!-- 设置预算模态框 -->
+    <div id="budgetModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">设置预算</h3>
+                <button class="close-btn" onclick="closeModal('budget')">&times;</button>
+            </div>
+            <form>
+                <div class="form-group">
+                 <label>预算金额</label>
+                    <input type="text" placeholder="请输入预算金额" required>
+                </div>
+                <button type="submit" class="submit-btn">保存预算</button>
+            </form>
+        </div>
+    </div>
+
     <!-- 邀请成员模态框 -->
     <div id="inviteModal" class="modal">
         <div class="modal-content">
@@ -854,6 +824,7 @@
             // 可以在这里添加页面初始化逻辑
             console.log('管家婆家庭财务管理系统已加载');
         });
+
     </script>
 </body>
 </html>

@@ -58,7 +58,6 @@
 
 ```json
 {
-  "uuid": "string",
   "token": "string", // 用于自动登录的token
 }
 ```
@@ -242,7 +241,7 @@
 
 ### 查询支出统计
 
-```GET /api/v1/outcomes/stats```
+```GET /api/v1/outcome```
 
 请求参数
 
@@ -265,7 +264,7 @@
 
 ### 查询收入统计
 
-```GET /api/v1/bills/income/stats```
+```GET /api/v1/bills/income```
 
 请求参数
 
