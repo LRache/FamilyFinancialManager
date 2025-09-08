@@ -78,36 +78,6 @@ func GetTransactionRecordsByFamily(familyID int, billType *int, startDate, endDa
 	return records, err
 }
 
-// EditTransactionRecord 调用存储过程修改收支记录
-func EditTransactionRecord(recordID, userID, categoryID int, amount float64, occurredAt time.Time, note, merchant, location, paymentMethod string) error {
-	// 调用存储过程 EditTransactionRecord
-	result := DB.Exec("CALL EditTransactionRecord(?, ?, ?, ?, ?, ?, ?, ?, ?)",
-		recordID, userID, categoryID, amount, occurredAt,
-		stringPtrFromString(note),
-		stringPtrFromString(merchant),
-		stringPtrFromString(location),
-		stringPtrFromString(paymentMethod))
-
-	if result.Error != nil {
-		// 检查是否是MySQL 45000异常（业务逻辑错误）
-		errorMsg := result.Error.Error()
-		if strings.Contains(errorMsg, "Error 1644") {
-			if strings.Contains(errorMsg, "账单不存在") {
-				return errors.New("账单不存在")
-			}
-			if strings.Contains(errorMsg, "用户不存在或不属于同一家庭") {
-				return errors.New("用户不存在或不属于同一家庭")
-			}
-			if strings.Contains(errorMsg, "分类不存在") {
-				return errors.New("分类不存在")
-			}
-		}
-		return result.Error
-	}
-
-	return nil
-}
-
 // DeleteTransactionRecord 调用存储过程删除收支记录
 func DeleteTransactionRecord(recordID int) error {
 	// 调用存储过程 DeleteTransactionRecord
@@ -135,13 +105,6 @@ func GetCategoryByName(categoryName string) (*model.Category, error) {
 		return nil, err
 	}
 	return &category, nil
-}
-
-// GetAllCategories 获取所有分类
-func GetAllCategories() ([]model.Category, error) {
-	var categories []model.Category
-	err := DB.Find(&categories).Error
-	return categories, err
 }
 
 // GetFamilyFinanceStats 调用存储过程获取家庭收支统计

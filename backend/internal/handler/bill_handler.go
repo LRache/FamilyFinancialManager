@@ -9,7 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// CreateBill 上传账单
 func CreateBill(ctx *gin.Context) {
 	var req request.CreateBill
 	err := ctx.ShouldBind(&req)
@@ -18,7 +17,6 @@ func CreateBill(ctx *gin.Context) {
 		return
 	}
 
-	// 从JWT token中获取用户ID
 	userIDInterface, exists := ctx.Get("user_id")
 	if !exists {
 		response.Unauthorized(ctx, "未登录")
@@ -36,7 +34,6 @@ func CreateBill(ctx *gin.Context) {
 	ResultToResponse(ctx, result, result.Data)
 }
 
-// QueryBills 查询账单
 func QueryBills(ctx *gin.Context) {
 	var req request.QueryBill
 	err := ctx.ShouldBindQuery(&req)
@@ -45,7 +42,6 @@ func QueryBills(ctx *gin.Context) {
 		return
 	}
 
-	// 从JWT token中获取用户ID
 	userIDInterface, exists := ctx.Get("user_id")
 	if !exists {
 		response.Unauthorized(ctx, "未登录")
@@ -63,54 +59,6 @@ func QueryBills(ctx *gin.Context) {
 	ResultToResponse(ctx, result, result.Data)
 }
 
-// AddRecurringBill 添加定期收支
-func AddRecurringBill(ctx *gin.Context) {
-	var req request.CreateRecurringBill
-	err := ctx.ShouldBind(&req)
-	if err != nil {
-		response.BadRequest(ctx, err.Error())
-		return
-	}
-
-	// 从JWT token中获取用户ID
-	userIDInterface, exists := ctx.Get("user_id")
-	if !exists {
-		response.Unauthorized(ctx, "未登录")
-		return
-	}
-
-	userID, ok := userIDInterface.(int)
-	if !ok {
-		response.BadRequest(ctx, "无效的用户ID")
-		return
-	}
-
-	result := service.CreateRecurringBill(userID, req.Type, req.Amount, req.Category, req.OccurredAt, req.Note, req.Interval)
-
-	ResultToResponse(ctx, result, result.Data)
-}
-
-// QueryRecurringBills 查询定期收支
-func QueryRecurringBills(ctx *gin.Context) {
-	// 从JWT token中获取用户ID
-	userIDInterface, exists := ctx.Get("user_id")
-	if !exists {
-		response.Unauthorized(ctx, "未登录")
-		return
-	}
-
-	userID, ok := userIDInterface.(int)
-	if !ok {
-		response.BadRequest(ctx, "无效的用户ID")
-		return
-	}
-
-	result := service.QueryRecurringBills(userID)
-
-	ResultToResponse(ctx, result, result.Data)
-}
-
-// GetIncomeStats 查询收入统计
 func GetIncomeStats(ctx *gin.Context) {
 	var req request.QueryStats
 	err := ctx.ShouldBindQuery(&req)
@@ -119,7 +67,6 @@ func GetIncomeStats(ctx *gin.Context) {
 		return
 	}
 
-	// 从JWT token中获取用户ID
 	userIDInterface, exists := ctx.Get("user_id")
 	if !exists {
 		response.Unauthorized(ctx, "未登录")
@@ -137,7 +84,6 @@ func GetIncomeStats(ctx *gin.Context) {
 	ResultToResponse(ctx, result, result.Data)
 }
 
-// GetExpenseStats 查询支出统计
 func GetExpenseStats(ctx *gin.Context) {
 	var req request.QueryStats
 	err := ctx.ShouldBindQuery(&req)
@@ -146,7 +92,6 @@ func GetExpenseStats(ctx *gin.Context) {
 		return
 	}
 
-	// 从JWT token中获取用户ID
 	userIDInterface, exists := ctx.Get("user_id")
 	if !exists {
 		response.Unauthorized(ctx, "未登录")
@@ -164,7 +109,6 @@ func GetExpenseStats(ctx *gin.Context) {
 	ResultToResponse(ctx, result, result.Data)
 }
 
-// SetBudget 设置预算（复用已有的家庭预算设置功能）
 func SetBudget(ctx *gin.Context) {
 	var req request.SetBudget
 	err := ctx.ShouldBind(&req)
@@ -173,7 +117,6 @@ func SetBudget(ctx *gin.Context) {
 		return
 	}
 
-	// 从JWT token中获取用户ID
 	userIDInterface, exists := ctx.Get("user_id")
 	if !exists {
 		response.Unauthorized(ctx, "未登录")

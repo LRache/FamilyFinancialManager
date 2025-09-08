@@ -74,12 +74,6 @@ func InviteUserToFamily(inviterID int, inviteeID int) error {
 	return nil
 }
 
-// UpdateFamilyBudget 更新家庭预算
-func UpdateFamilyBudget(familyID int, budget float64) error {
-	err := DB.Model(&model.Family{}).Where("familyid = ?", familyID).Update("monthbudget", budget).Error
-	return err
-}
-
 // SetFamilyBudget 调用存储过程设置家庭预算
 func SetFamilyBudget(userID int, budgetTime string, amount float64) error {
 	// 调用存储过程 sp_set_family_budget

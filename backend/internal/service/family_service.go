@@ -77,7 +77,7 @@ func GetFamilyMembers(userID int) *Result[response.FamilyMembers] {
 	}
 
 	if user.FamilyID == nil {
-		return ResultFailed[response.FamilyMembers](http.StatusBadRequest, "用户未加入任何家庭")
+		return ResultOK(response.FamilyMembers{Members: []response.FamilyMember{}})
 	}
 
 	members, err := repository.GetFamilyMembers(*user.FamilyID)

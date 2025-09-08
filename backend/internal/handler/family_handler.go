@@ -77,31 +77,6 @@ func GetFamilyMembers(ctx *gin.Context) {
 	ResultToResponse(ctx, result, result.Data)
 }
 
-func SetFamilyBudget(ctx *gin.Context) {
-	var req request.SetBudget
-	err := ctx.ShouldBind(&req)
-	if err != nil {
-		response.BadRequest(ctx, err.Error())
-		return
-	}
-
-	userIDInterface, exists := ctx.Get("user_id")
-	if !exists {
-		response.Unauthorized(ctx, "未登录")
-		return
-	}
-
-	userID, ok := userIDInterface.(int)
-	if !ok {
-		response.BadRequest(ctx, "无效的用户ID")
-		return
-	}
-
-	result := service.SetFamilyBudget(userID, req.StartDate, req.Amount)
-
-	ResultToResponse(ctx, result, gin.H{"message": result.Data})
-}
-
 func GetFamilyInfo(ctx *gin.Context) {
 	userIDInterface, exists := ctx.Get("user_id")
 	if !exists {

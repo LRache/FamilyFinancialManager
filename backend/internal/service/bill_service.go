@@ -136,12 +136,9 @@ func QueryBills(userID int, billType *int, startDate, endDate, category, member 
 	return ResultOK(response.BillList{Bills: bills})
 }
 
-// CreateRecurringBill 创建定期账单（这里简化处理，实际应该有专门的定期账单表）
 func CreateRecurringBill(userID int, billType int, amount float64, category, occurredAt, note, interval string) *Result[response.RecurringBill] {
-	// 解析时间
 	parsedTime, err := time.Parse("2006-01-02 15:04:05", occurredAt)
 	if err != nil {
-		// 尝试解析仅日期格式
 		parsedTime, err = time.Parse("2006-01-02", occurredAt)
 		if err != nil {
 			logger.Warn("Invalid time format:", err.Error())
@@ -149,24 +146,20 @@ func CreateRecurringBill(userID int, billType int, amount float64, category, occ
 		}
 	}
 
-	// 验证周期参数
 	if interval != "daily" && interval != "weekly" && interval != "monthly" {
 		return ResultFailed[response.RecurringBill](http.StatusBadRequest, "周期参数错误，支持：daily, weekly, monthly")
 	}
 
-	// 根据分类名称获取分类ID
 	categoryModel, err := repository.GetCategoryByName(category)
 	if err != nil {
 		logger.Warn("Category not found:", err.Error())
 		return ResultFailed[response.RecurringBill](http.StatusBadRequest, "分类不存在")
 	}
 
-	// 验证分类类型与账单类型是否匹配
 	if categoryModel.Type != billType {
 		return ResultFailed[response.RecurringBill](http.StatusBadRequest, "分类类型与账单类型不匹配")
 	}
 
-	// 创建第一条账单记录
 	recordID, err := repository.CreateTransactionRecord(userID, categoryModel.CategoryID, amount, parsedTime, note, "", "", "")
 	if err != nil {
 		logger.Warn("Create transaction record error:", err.Error())
@@ -176,7 +169,6 @@ func CreateRecurringBill(userID int, billType int, amount float64, category, occ
 		return ResultFailed[response.RecurringBill](http.StatusInternalServerError, "Internal server error")
 	}
 
-	// 构造响应（这里简化处理，实际应该存储定期任务信息）
 	recurringBill := response.RecurringBill{
 		ID:         recordID,
 		Type:       billType,
@@ -222,9 +214,7 @@ func GetIncomeStats(userID int, startDate, endDate, category string) *Result[res
 	})
 }
 
-// GetExpenseStats 获取支出统计
 func GetExpenseStats(userID int, startDate, endDate, category string) *Result[response.Stats] {
-	// 获取统计数据
 	stats, err := repository.GetFamilyFinanceStats(userID, startDate, endDate)
 	if err != nil {
 		logger.Warn("Get finance stats error:", err.Error())
@@ -233,7 +223,6 @@ func GetExpenseStats(userID int, startDate, endDate, category string) *Result[re
 
 	var totalAmount float64
 	for _, stat := range stats {
-		// 只统计支出（type=0）
 		if expenseType, ok := stat["income_or_expense"].(int64); ok && expenseType == 0 {
 			if amount, ok := stat["total_amount"].(float64); ok {
 				totalAmount += amount
@@ -247,7 +236,6 @@ func GetExpenseStats(userID int, startDate, endDate, category string) *Result[re
 	})
 }
 
-// QueryBudget 查询预算
 func QueryBudget(userID int, startDate, category string) *Result[response.Budget] {
 	// 获取用户家庭ID
 	user, err := repository.GetUserByID(userID)
@@ -260,7 +248,6 @@ func QueryBudget(userID int, startDate, category string) *Result[response.Budget
 		return ResultFailed[response.Budget](http.StatusBadRequest, "用户未加入家庭")
 	}
 
-	// 查询预算
 	budget, err := repository.GetBudgetByFamilyAndTime(*user.FamilyID, startDate)
 	if err != nil {
 		logger.Warn("Get budget error:", err.Error())
@@ -283,9 +270,7 @@ func stringValueFromPtr(ptr *string) string {
 	return *ptr
 }
 
-// DeleteBill 删除账单
 func DeleteBill(billID int) *Result[string] {
-	// 调用repository层删除账单
 	err := repository.DeleteTransactionRecord(billID)
 	if err != nil {
 		logger.Warn("Delete bill error:", err.Error())

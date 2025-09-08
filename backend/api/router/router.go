@@ -18,21 +18,19 @@ func Init(router *gin.Engine) {
 	familyGroup := root.Group("/family")
 	familyGroup.Use(middleware.JWTAuth())
 	{
-		familyGroup.POST("", handler.CreateFamily)               // 创建家庭 POST /api/v1/family
-		familyGroup.POST("/members", handler.InviteUserToFamily) // 邀请用户 POST /api/v1/family/members
-		familyGroup.GET("/members", handler.GetFamilyMembers)    // 获取成员列表 GET /api/v1/family/members
+		familyGroup.POST("", handler.CreateFamily)
+		familyGroup.POST("/members", handler.InviteUserToFamily)
+		familyGroup.GET("/members", handler.GetFamilyMembers)
 	}
 
 	// 账单管理（需要认证）
 	billsGroup := root.Group("/bills")
 	billsGroup.Use(middleware.JWTAuth())
 	{
-		billsGroup.POST("", handler.CreateBill)                   // 上传账单 POST /api/v1/bills
-		billsGroup.GET("", handler.QueryBills)                    // 查询账单 GET /api/v1/bills
-		billsGroup.DELETE("/:id", handler.DeleteBill)             // 删除账单 DELETE /api/v1/bills/:id
-		billsGroup.POST("/recurring", handler.AddRecurringBill)   // 添加定期收支 POST /api/v1/bills/recurring
-		billsGroup.GET("/recurring", handler.QueryRecurringBills) // 查询定期收支 GET /api/v1/bills/recurring
-		billsGroup.GET("/income", handler.GetIncomeStats)         // 查询收入统计 GET /api/v1/bills/income
+		billsGroup.POST("", handler.CreateBill)
+		billsGroup.GET("", handler.QueryBills)
+		billsGroup.DELETE("/:id", handler.DeleteBill)
+		billsGroup.GET("/income", handler.GetIncomeStats)
 	}
 
 	// 预算管理（需要认证）
