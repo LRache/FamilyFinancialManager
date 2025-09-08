@@ -60,6 +60,12 @@
 
 `POST /api/v1/family`
 
+请求体
+
+| 字段      | 类型   | 说明   |
+| --------- | ------ | ------ |
+| name  | string | 家庭名 |
+
 ### 家庭成员邀请
 
 `POST /api/v1/family/members`
