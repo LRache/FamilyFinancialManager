@@ -194,11 +194,14 @@ CREATE PROCEDURE AddTransactionRecord(
     IN p_note VARCHAR(255),
     IN p_merchant VARCHAR(100),
     IN p_location VARCHAR(100),
-    IN p_paymentmethod VARCHAR(50)
+    IN p_paymentmethod VARCHAR(50),
+    OUT p_exceed_flag INT  
 )
 BEGIN
     DECLARE v_familyid INT;
     DECLARE v_category_type TINYINT;
+    DECLARE v_budget_amount DECIMAL(10,2);
+    DECLARE v_current_expense DECIMAL(10,2);
 
     -- 检查分类是否存在，并获取类型
     SELECT type INTO v_category_type
@@ -209,22 +212,50 @@ BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '分类不存在';
     END IF;
 
-    -- 如果指定用户，则获取其所属家庭
-    IF p_userid IS NOT NULL THEN
-        SELECT familyid INTO v_familyid
-        FROM Users
-        WHERE userid = p_userid;
+    -- 获取用户所属家庭
+    SELECT familyid INTO v_familyid
+    FROM Users
+    WHERE userid = p_userid;
 
-        IF v_familyid IS NULL THEN
-            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '用户不存在或未关联家庭';
-        END IF;
-    ELSE
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '必须指定用户ID或手动设置家庭ID';
+    IF v_familyid IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '用户不存在或未关联家庭';
     END IF;
 
-    -- 插入记录
-    INSERT INTO TransactionRecord(familyid, userid, categoryid, amount, occurred_at, note, merchant, location, paymentmethod)
-    VALUES (v_familyid, p_userid, p_categoryid, p_amount, p_occurred_at, p_note, p_merchant, p_location, p_paymentmethod);
+    -- 插入交易记录
+    INSERT INTO TransactionRecord(
+        familyid, userid, categoryid, amount, occurred_at, note, merchant, location, paymentmethod
+    ) VALUES (
+        v_familyid, p_userid, p_categoryid, p_amount, p_occurred_at, p_note, p_merchant, p_location, p_paymentmethod
+    );
+
+    -- 默认未超出
+    SET p_exceed_flag = 0;
+
+    -- 只对支出检查预算
+    IF v_category_type = 0 THEN
+        -- 查找预算（按年月）
+        SELECT amount INTO v_budget_amount
+        FROM Budget
+        WHERE familyid = v_familyid
+          AND DATE_FORMAT(time, '%Y-%m') = DATE_FORMAT(p_occurred_at, '%Y-%m')
+        LIMIT 1;
+
+        -- 如果没有预算，直接返回 0（视为不超出）
+        IF v_budget_amount IS NOT NULL THEN
+            -- 计算当前月总支出
+            SELECT COALESCE(SUM(amount), 0) INTO v_current_expense
+            FROM TransactionRecord tr
+            JOIN Category c ON tr.categoryid = c.categoryid
+            WHERE tr.familyid = v_familyid
+              AND c.type = 0
+              AND DATE_FORMAT(tr.occurred_at, '%Y-%m') = DATE_FORMAT(p_occurred_at, '%Y-%m');
+
+            -- 判断是否超出预算
+            IF v_current_expense > v_budget_amount THEN
+                SET p_exceed_flag = 1;
+            END IF;
+        END IF;
+    END IF;
 END $$
 
 DELIMITER ;
