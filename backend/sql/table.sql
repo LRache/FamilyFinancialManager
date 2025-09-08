@@ -47,6 +47,20 @@ CREATE TABLE `Category` (
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COMMENT='收支分类表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+INSERT INTO Category (categoryname, type) 
+VALUES 
+('餐饮', 0),
+('购物',0),
+('交通',0),
+('娱乐',0),
+('医疗',0),
+('教育',0),
+('其他支出',0),
+('工资',1),
+('奖金',1),
+('投资受益',1),
+('其他收入',1);
+
 --
 -- Table structure for table `Family`
 --
