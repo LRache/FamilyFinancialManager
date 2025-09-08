@@ -49,17 +49,9 @@
 
 响应包裹
 
-<<<<<<< HEAD
-```json
-{
-  "token": "string", // 用于自动登录的token
-}
-```
-=======
 | 字段      | 类型   | 说明             |
 | --------- | ------ | ---------------- |
 | token     | string | 自动登录token    |
->>>>>>> 17f7aaa96bf20ab11253e57bff0ae04eca4ff587
 
 ## 家庭成员管理
 
@@ -146,6 +138,22 @@
 | category    | string | 账单类别   |
 | occurred_at | number | 发生时间戳 |
 | note        | string | 备注       |
+
+### 删除账单
+
+`DELETE /api/v1/bills/:id`
+
+路径参数
+
+| 字段 | 类型   | 说明   |
+| ---- | ------ | ------ |
+| id   | number | 账单ID |
+
+响应包裹
+
+| 字段    | 类型   | 说明     |
+| ------- | ------ | -------- |
+| message | string | 操作结果 |
 
 ### 添加定期收支
 
