@@ -15,7 +15,7 @@
 | 字段      | 类型   | 说明     |
 | --------- | ------ | -------- |
 | message   | string | 信息     |
-| response  | object | 相应包裹 |
+| response  | object | 响应包裹 |
 
 ## 用户鉴权
 
@@ -29,6 +29,7 @@
 | --------- | ------ | ------ |
 | username  | string | 用户名 |
 | password  | string | 密码   |
+| email     | string | 邮箱   |
 
 响应包裹
 
@@ -154,55 +155,6 @@
 | 字段    | 类型   | 说明     |
 | ------- | ------ | -------- |
 | message | string | 操作结果 |
-
-### 添加定期收支
-
-`POST /api/v1/bills/recurring`
-
-请求体
-
-| 字段        | 类型   | 说明                                |
-| ----------- | ------ | ----------------------------------- |
-| type        | number | 账单类型（0表示支出，1表示收入）      |
-| amount      | number | 账单数额                            |
-| category    | string | 账单类别                            |
-| occurred_at | string | 发生时间                            |
-| note        | string | 备注                                |
-| interval    | string | 账单周期（支持 daily, weekly, monthly） |
-
-响应包裹
-
-| 字段        | 类型   | 说明       |
-| ----------- | ------ | ---------- |
-| id          | number | 账单ID     |
-| type        | number | 账单类型   |
-| amount      | number | 账单数额   |
-| category    | string | 账单类别   |
-| occurred_at | number | 发生时间戳 |
-| note        | string | 备注       |
-| interval    | string | 账单周期   |
-
-### 查询定期收支
-
-`GET /api/v1/bills/recurring`
-
-响应包裹
-
-| 字段      | 类型   | 说明     |
-| --------- | ------ | -------- |
-| bills     | array  | 账单列表 |
-
-账单对象：
-
-| 字段        | 类型   | 说明       |
-| ----------- | ------ | ---------- |
-| id          | number | 账单ID     |
-| type        | number | 账单类型   |
-| amount      | number | 账单数额   |
-| category    | string | 账单类别   |
-| occurred_at | number | 发生时间戳 |
-| note        | string | 备注       |
-| interval    | string | 账单周期   |
 
 ## 预算和支出统计
 
