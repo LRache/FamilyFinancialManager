@@ -44,7 +44,7 @@ CREATE TABLE `Category` (
   `type` tinyint(1) NOT NULL COMMENT '收支类型，1=收入，0=支出',
   `note` varchar(255) DEFAULT NULL COMMENT '备注',
   PRIMARY KEY (`categoryid`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COMMENT='收支分类表';
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COMMENT='收支分类表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 INSERT INTO Category (categoryname, type) 
@@ -72,7 +72,7 @@ CREATE TABLE `Family` (
   `familyid` int NOT NULL AUTO_INCREMENT COMMENT '家庭ID',
   `familyname` varchar(100) NOT NULL COMMENT '家庭名称',
   PRIMARY KEY (`familyid`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COMMENT='家庭表';
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COMMENT='家庭表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -100,7 +100,7 @@ CREATE TABLE `TransactionRecord` (
   CONSTRAINT `FK_Transaction_Category` FOREIGN KEY (`categoryid`) REFERENCES `Category` (`categoryid`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `FK_Transaction_Family` FOREIGN KEY (`familyid`) REFERENCES `Family` (`familyid`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `FK_Transaction_User` FOREIGN KEY (`userid`) REFERENCES `Users` (`userid`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COMMENT='家庭收支记录表';
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COMMENT='家庭收支记录表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -121,7 +121,7 @@ CREATE TABLE `Users` (
   UNIQUE KEY `email` (`email`),
   KEY `FK_User_Family` (`familyid`),
   CONSTRAINT `FK_User_Family` FOREIGN KEY (`familyid`) REFERENCES `Family` (`familyid`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
