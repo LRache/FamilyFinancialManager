@@ -62,9 +62,16 @@
 
 请求体
 
-| 字段      | 类型   | 说明   |
-| --------- | ------ | ------ |
-| name  | string | 家庭名 |
+| 字段       | 类型   | 说明   |
+| ---------- | ------ | ------ |
+| familyname | string | 家庭名 |
+
+响应包裹
+
+| 字段       | 类型   | 说明   |
+| ---------- | ------ | ------ |
+| familyid   | number | 家庭ID |
+| familyname | string | 家庭名 |
 
 ### 家庭成员邀请
 
@@ -78,9 +85,10 @@
 
 响应包裹
 
-| 字段      | 类型   | 说明     |
-| --------- | ------ | -------- |
-| username  | string | 用户名   |
+| 字段     | 类型   | 说明     |
+| -------- | ------ | -------- |
+| username | string | 用户名   |
+| status   | string | 邀请状态 |
 
 ### 家庭成员列表
 
@@ -94,10 +102,11 @@
 
 成员对象：
 
-| 字段      | 类型   | 说明   |
-| --------- | ------ | ------ |
-| username  | string | 用户名 |
-| email     | string | 邮箱   |
+| 字段     | 类型   | 说明                   |
+| -------- | ------ | ---------------------- |
+| username | string | 用户名                 |
+| email    | string | 邮箱                   |
+| role     | number | 角色（0=成员，1=管理员） |
 
 ## 账单管理
 
@@ -107,13 +116,16 @@
 
 请求体
 
-| 字段        | 类型   | 说明                         |
-| ----------- | ------ | ---------------------------- |
-| type        | number | 账单类型（0表示支出，1表示收入） |
-| amount      | number | 账单数额                     |
-| category    | string | 账单类别                     |
-| occurred_at | string | 发生时间                     |
-| note        | string | 备注                         |
+| 字段           | 类型   | 说明                         |
+| -------------- | ------ | ---------------------------- |
+| type           | number | 账单类型（0表示支出，1表示收入） |
+| amount         | number | 账单数额                     |
+| category       | string | 账单类别                     |
+| occurred_at    | string | 发生时间                     |
+| note           | string | 备注                         |
+| merchant       | string | 商家名称                     |
+| location       | string | 消费地点                     |
+| payment_method | string | 支付方式                     |
 
 ### 查询账单
 
@@ -137,14 +149,18 @@
 
 账单对象：
 
-| 字段        | 类型   | 说明       |
-| ----------- | ------ | ---------- |
-| id          | number | 账单ID     |
-| type        | number | 账单类型   |
-| amount      | number | 账单数额   |
-| category    | string | 账单类别   |
-| occurred_at | number | 发生时间戳 |
-| note        | string | 备注       |
+| 字段           | 类型   | 说明       |
+| -------------- | ------ | ---------- |
+| id             | number | 账单ID     |
+| type           | number | 账单类型   |
+| amount         | number | 账单数额   |
+| category       | string | 账单类别   |
+| occurred_at    | number | 发生时间戳 |
+| note           | string | 备注       |
+| member         | string | 家庭成员   |
+| merchant       | string | 商家名称   |
+| location       | string | 消费地点   |
+| payment_method | string | 支付方式   |
 
 ### 删除账单
 
@@ -185,7 +201,7 @@
 
 | 字段       | 类型   | 说明     |
 | ---------- | ------ | -------- |
-| start_date | number | 开始日期 |
+| start_date | string | 开始日期 |
 | category   | string | 预算类别 |
 
 相应包裹
@@ -198,7 +214,7 @@
 
 | 字段       | 类型   | 说明     |
 | ---------- | ------ | -------- |
-| start_date | number | 开始日期 |
+| start_date | string | 开始日期 |
 | amount     | number | 预算金额 |
 | category   | string | 预算类别 |
 | note       | string | 备注     |
