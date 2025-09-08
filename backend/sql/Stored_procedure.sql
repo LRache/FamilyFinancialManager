@@ -1,4 +1,5 @@
 -- 用户注册
+DROP PROCEDURE IF EXISTS sp_register_api;
 DELIMITER //
 
 CREATE PROCEDURE sp_register_api (
@@ -28,6 +29,7 @@ END//
 DELIMITER ;
 
 -- 创建家庭
+DROP PROCEDURE IF EXISTS sp_create_family;
 DELIMITER //
 
 CREATE PROCEDURE sp_create_family (
@@ -66,6 +68,7 @@ END //
 DELIMITER ;
 
 -- 邀请成员
+DROP PROCEDURE IF EXISTS sp_invite_user_to_family;
 DELIMITER //
 
 CREATE PROCEDURE sp_invite_user_to_family (
@@ -107,6 +110,7 @@ END //
 DELIMITER ;
 
 -- 设置预算
+DROP PROCEDURE IF EXISTS sp_set_family_budget;
 DELIMITER //
 
 CREATE PROCEDURE sp_set_family_budget (
@@ -149,6 +153,7 @@ DELIMITER ;
 
 DELIMITER $$
 -- 根据日期查询收支
+DROP PROCEDURE IF EXISTS GetFamilyFinanceByUser $$
 CREATE PROCEDURE GetFamilyFinanceByUser(
     IN p_userid INT,
     IN p_start_date DATE,
@@ -186,6 +191,7 @@ DELIMITER ;
 
 DELIMITER $$
 -- 家庭收入/支出的录入
+DROP PROCEDURE IF EXISTS AddTransactionRecord $$
 CREATE PROCEDURE AddTransactionRecord(
     IN p_userid INT,
     IN p_categoryid INT,
@@ -232,6 +238,7 @@ DELIMITER ;
 
 DELIMITER $$
 -- 修改已有的收支记录
+DROP PROCEDURE IF EXISTS EditTransactionRecord $$
 CREATE PROCEDURE EditTransactionRecord(
     IN p_transactionrecordid INT,
     IN p_userid INT,
@@ -297,6 +304,7 @@ DELIMITER ;
 
 DELIMITER $$
 -- 删除已有的收支记录
+DROP PROCEDURE IF EXISTS DeleteTransactionRecord $$
 CREATE PROCEDURE DeleteTransactionRecord(
     IN p_transactionrecordid INT
 )
