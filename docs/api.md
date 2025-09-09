@@ -190,7 +190,6 @@
 | ---------- | ------ | -------- |
 | amount     | number | 预算金额 |
 | start_date | string | 开始日期 |
-| category   | string | 预算类别 |
 | note       | string | 备注     |
 
 ### 查询预算
@@ -202,7 +201,6 @@
 | 字段       | 类型   | 说明     |
 | ---------- | ------ | -------- |
 | start_date | string | 开始日期 |
-| category   | string | 预算类别 |
 
 相应包裹
 
