@@ -74,12 +74,9 @@ func InviteUserToFamily(inviterID int, inviteeID int) error {
 	return nil
 }
 
-// SetFamilyBudget 调用存储过程设置家庭预算
 func SetFamilyBudget(userID int, budgetTime string, amount float64) error {
-	// 调用存储过程 sp_set_family_budget
 	result := DB.Exec("CALL sp_set_family_budget(?, ?, ?)", userID, budgetTime, amount)
 	if result.Error != nil {
-		// 检查是否是MySQL 45000异常（业务逻辑错误）
 		errorMsg := result.Error.Error()
 		if strings.Contains(errorMsg, "Error 1644") {
 			if strings.Contains(errorMsg, "只有家庭管理员才能设置家庭预算") {
@@ -89,4 +86,13 @@ func SetFamilyBudget(userID int, budgetTime string, amount float64) error {
 		return result.Error
 	}
 	return nil
+}
+
+func GetFamilyAdminByFamilyID(familyID int) (*model.User, error) {
+	var admin model.User
+	err := DB.Where("familyid = ? AND role = ?", familyID, 1).First(&admin).Error // role=1表示管理员
+	if err != nil {
+		return nil, err
+	}
+	return &admin, nil
 }

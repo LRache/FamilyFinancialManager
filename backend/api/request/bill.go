@@ -2,7 +2,7 @@ package request
 
 // CreateBill 上传账单请求
 type CreateBill struct {
-	Type          int     `form:"type" json:"type" binding:"required"`               // 账单类型（0表示支出，1表示收入）
+	Type          *int    `form:"type" json:"type" binding:"required,min=0,max=1"`   // 账单类型（0表示支出，1表示收入）
 	Amount        float64 `form:"amount" json:"amount" binding:"required"`           // 账单数额
 	Category      string  `form:"category" json:"category" binding:"required"`       // 账单类别
 	OccurredAt    string  `form:"occurred_at" json:"occurred_at" binding:"required"` // 发生时间
@@ -23,7 +23,7 @@ type QueryBill struct {
 
 // CreateRecurringBill 添加定期收支请求
 type CreateRecurringBill struct {
-	Type       int     `form:"type" json:"type" binding:"required"`               // 账单类型（0表示支出，1表示收入）
+	Type       *int    `form:"type" json:"type" binding:"required,min=0,max=1"`   // 账单类型（0表示支出，1表示收入）
 	Amount     float64 `form:"amount" json:"amount" binding:"required"`           // 账单数额
 	Category   string  `form:"category" json:"category" binding:"required"`       // 账单类别
 	OccurredAt string  `form:"occurred_at" json:"occurred_at" binding:"required"` // 发生时间

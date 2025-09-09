@@ -23,7 +23,6 @@ func Init(router *gin.Engine) {
 		familyGroup.GET("/members", handler.GetFamilyMembers)
 	}
 
-	// 账单管理（需要认证）
 	billsGroup := root.Group("/bills")
 	billsGroup.Use(middleware.JWTAuth())
 	{
@@ -31,20 +30,14 @@ func Init(router *gin.Engine) {
 		billsGroup.GET("", handler.QueryBills)
 		billsGroup.DELETE("/:id", handler.DeleteBill)
 		billsGroup.GET("/income", handler.GetIncomeStats)
+		billsGroup.GET("/outcome", handler.GetExpenseStats)
 	}
 
 	// 预算管理（需要认证）
 	budgetGroup := root.Group("/budget")
 	budgetGroup.Use(middleware.JWTAuth())
 	{
-		budgetGroup.POST("", handler.SetBudget)  // 设置预算 POST /api/v1/budget
-		budgetGroup.GET("", handler.QueryBudget) // 查询预算 GET /api/v1/budget
-	}
-
-	// 支出统计（需要认证）
-	outcomeGroup := root.Group("/outcome")
-	outcomeGroup.Use(middleware.JWTAuth())
-	{
-		outcomeGroup.GET("", handler.GetExpenseStats) // 查询支出统计 GET /api/v1/outcome
+		budgetGroup.POST("", handler.SetBudget)
+		budgetGroup.GET("", handler.QueryBudget)
 	}
 }

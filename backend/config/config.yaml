@@ -10,3 +10,11 @@ database:
   username: rache
   password: "050302"
   dbname: rache_familyfinacialmanager
+
+email:
+  smtp_host: smtp.qq.com
+  smtp_port: 587
+  username: FFM
+  password: vkrgthzwuplfdfih
+  from_email: 2746324475@qq.com
+  enabled: true

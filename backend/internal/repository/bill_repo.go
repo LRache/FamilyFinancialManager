@@ -2,43 +2,55 @@ package repository
 
 import (
 	"backend/internal/model"
+	"database/sql"
 	"errors"
 	"strings"
 	"time"
 )
 
-// CreateTransactionRecord 调用存储过程添加收支记录
-func CreateTransactionRecord(userID int, categoryID int, amount float64, occurredAt time.Time, note, merchant, location, paymentMethod string) (int, error) {
-	// 调用存储过程 AddTransactionRecord
-	result := DB.Exec("CALL AddTransactionRecord(?, ?, ?, ?, ?, ?, ?, ?)",
+// CreateTransactionRecord 调用存储过程添加收支记录，返回记录ID和是否超支标志
+func CreateTransactionRecord(userID int, categoryID int, amount float64, occurredAt time.Time, note, merchant, location, paymentMethod string) (int, bool, error) {
+	var recordID int
+	var exceedFlag sql.NullInt32
+
+	// 调用存储过程 AddTransactionRecord，注意输出参数的使用
+	err := DB.Exec("CALL AddTransactionRecord(?, ?, ?, ?, ?, ?, ?, ?, @exceed_flag)",
 		userID, categoryID, amount, occurredAt,
 		stringPtrFromString(note),
 		stringPtrFromString(merchant),
 		stringPtrFromString(location),
-		stringPtrFromString(paymentMethod))
+		stringPtrFromString(paymentMethod)).Error
 
-	if result.Error != nil {
+	if err != nil {
 		// 检查是否是MySQL 45000异常（业务逻辑错误）
-		errorMsg := result.Error.Error()
+		errorMsg := err.Error()
 		if strings.Contains(errorMsg, "Error 1644") {
 			if strings.Contains(errorMsg, "分类不存在") {
-				return 0, errors.New("分类不存在")
+				return 0, false, errors.New("分类不存在")
 			}
 			if strings.Contains(errorMsg, "用户不存在或未关联家庭") {
-				return 0, errors.New("用户不存在或未关联家庭")
+				return 0, false, errors.New("用户不存在或未关联家庭")
 			}
 		}
-		return 0, result.Error
+		return 0, false, err
+	}
+
+	// 获取输出参数
+	err = DB.Raw("SELECT @exceed_flag").Scan(&exceedFlag).Error
+	if err != nil {
+		return 0, false, err
 	}
 
 	// 获取最后插入的记录ID
-	var lastID int
-	err := DB.Raw("SELECT LAST_INSERT_ID()").Scan(&lastID).Error
+	err = DB.Raw("SELECT LAST_INSERT_ID()").Scan(&recordID).Error
 	if err != nil {
-		return 0, err
+		return 0, false, err
 	}
 
-	return lastID, nil
+	// 处理超支标志，如果是NULL则默认为false
+	isOverBudget := exceedFlag.Valid && exceedFlag.Int32 == 1
+
+	return recordID, isOverBudget, nil
 }
 
 // GetTransactionRecordsByFamily 根据家庭ID查询收支记录
@@ -51,12 +63,10 @@ func GetTransactionRecordsByFamily(familyID int, billType *int, startDate, endDa
 		Joins("LEFT JOIN Users u ON t.userid = u.userid").
 		Where("t.familyid = ?", familyID)
 
-	// 添加类型过滤
 	if billType != nil {
 		query = query.Where("c.type = ?", *billType)
 	}
 
-	// 添加日期范围过滤
 	if startDate != "" {
 		query = query.Where("DATE(t.occurred_at) >= ?", startDate)
 	}
@@ -64,12 +74,10 @@ func GetTransactionRecordsByFamily(familyID int, billType *int, startDate, endDa
 		query = query.Where("DATE(t.occurred_at) <= ?", endDate)
 	}
 
-	// 添加分类过滤
 	if category != "" {
 		query = query.Where("c.categoryname = ?", category)
 	}
 
-	// 添加成员过滤
 	if member != "" {
 		query = query.Where("u.username = ?", member)
 	}
@@ -107,27 +115,23 @@ func GetCategoryByName(categoryName string) (*model.Category, error) {
 	return &category, nil
 }
 
-// GetFamilyFinanceStats 调用存储过程获取家庭收支统计
 func GetFamilyFinanceStats(userID int, startDate, endDate string) ([]map[string]interface{}, error) {
-	var results []map[string]interface{}
+	var results []map[string]any
 
-	// 调用存储过程 GetFamilyFinanceByUser
 	rows, err := DB.Raw("CALL GetFamilyFinanceByUser(?, ?, ?)", userID, startDate, endDate).Rows()
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	// 获取列名
 	columns, err := rows.Columns()
 	if err != nil {
 		return nil, err
 	}
 
-	// 读取结果
 	for rows.Next() {
-		values := make([]interface{}, len(columns))
-		valuePtrs := make([]interface{}, len(columns))
+		values := make([]any, len(columns))
+		valuePtrs := make([]any, len(columns))
 
 		for i := range values {
 			valuePtrs[i] = &values[i]
@@ -138,7 +142,7 @@ func GetFamilyFinanceStats(userID int, startDate, endDate string) ([]map[string]
 			return nil, err
 		}
 
-		result := make(map[string]interface{})
+		result := make(map[string]any)
 		for i, col := range columns {
 			result[col] = values[i]
 		}
@@ -148,7 +152,6 @@ func GetFamilyFinanceStats(userID int, startDate, endDate string) ([]map[string]
 	return results, nil
 }
 
-// GetBudgetByFamilyAndTime 获取家庭预算
 func GetBudgetByFamilyAndTime(familyID int, time string) (*model.Budget, error) {
 	var budget model.Budget
 	err := DB.Where("familyid = ? AND time = ?", familyID, time).First(&budget).Error
@@ -158,7 +161,6 @@ func GetBudgetByFamilyAndTime(familyID int, time string) (*model.Budget, error) 
 	return &budget, nil
 }
 
-// stringPtrFromString 辅助函数：将字符串转换为字符串指针，空字符串返回nil
 func stringPtrFromString(s string) *string {
 	if s == "" {
 		return nil

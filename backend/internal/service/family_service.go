@@ -63,9 +63,7 @@ func InviteUserToFamily(inviterID int, username string) *Result[response.InviteU
 	})
 }
 
-// GetFamilyMembers 获取家庭成员列表
 func GetFamilyMembers(userID int) *Result[response.FamilyMembers] {
-	// 首先获取用户信息以确定家庭ID
 	user, err := repository.GetUserByID(userID)
 	if err != nil {
 		logger.Warn("Get user error:", err.Error())
@@ -97,13 +95,11 @@ func GetFamilyMembers(userID int) *Result[response.FamilyMembers] {
 	})
 }
 
-// SetFamilyBudget 设置家庭预算
 func SetFamilyBudget(userID int, budgetTime string, amount float64) *Result[string] {
 	err := repository.SetFamilyBudget(userID, budgetTime, amount)
 	if err != nil {
 		logger.Warn("Set family budget error:", err.Error())
 
-		// 检查是否是业务逻辑错误
 		if strings.Contains(err.Error(), "只有家庭管理员才能设置") {
 			return ResultFailed[string](http.StatusForbidden, err.Error())
 		}

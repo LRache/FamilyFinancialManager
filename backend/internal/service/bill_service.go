@@ -4,17 +4,15 @@ import (
 	"backend/api/response"
 	"backend/internal/repository"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/wonderivan/logger"
 )
 
-// CreateBill 创建账单
 func CreateBill(userID int, billType int, amount float64, category, occurredAt, note, merchant, location, paymentMethod string) *Result[response.Bill] {
-	// 解析时间
 	parsedTime, err := time.Parse("2006-01-02 15:04:05", occurredAt)
 	if err != nil {
-		// 尝试解析仅日期格式
 		parsedTime, err = time.Parse("2006-01-02", occurredAt)
 		if err != nil {
 			logger.Warn("Invalid time format:", err.Error())
@@ -22,7 +20,6 @@ func CreateBill(userID int, billType int, amount float64, category, occurredAt, 
 		}
 	}
 
-	// 根据分类名称获取分类ID
 	categoryModel, err := repository.GetCategoryByName(category)
 	if err != nil {
 		logger.Warn("Category not found:", err.Error())
@@ -31,11 +28,12 @@ func CreateBill(userID int, billType int, amount float64, category, occurredAt, 
 
 	// 验证分类类型与账单类型是否匹配
 	if categoryModel.Type != billType {
+		logger.Warn("Category type does not match bill type")
 		return ResultFailed[response.Bill](http.StatusBadRequest, "分类类型与账单类型不匹配")
 	}
 
 	// 创建账单记录
-	recordID, err := repository.CreateTransactionRecord(userID, categoryModel.CategoryID, amount, parsedTime, note, merchant, location, paymentMethod)
+	recordID, isOverBudget, err := repository.CreateTransactionRecord(userID, categoryModel.CategoryID, amount, parsedTime, note, merchant, location, paymentMethod)
 	if err != nil {
 		logger.Warn("Create transaction record error:", err.Error())
 		if err.Error() == "用户不存在或未关联家庭" {
@@ -51,7 +49,17 @@ func CreateBill(userID int, billType int, amount float64, category, occurredAt, 
 		return ResultFailed[response.Bill](http.StatusInternalServerError, "Internal server error")
 	}
 
-	// 构造响应
+	if isOverBudget && billType == 0 { // 0表示支出
+		go func() {
+			if user.FamilyID != nil {
+				err := SendOverBudgetAlert(*user.FamilyID, amount, category, 0, 0) // 暂时传0，后续可以优化获取实际数据
+				if err != nil {
+					logger.Warn("Failed to send over budget alert:", err.Error())
+				}
+			}
+		}()
+	}
+
 	bill := response.Bill{
 		ID:            recordID,
 		Type:          billType,
@@ -68,9 +76,7 @@ func CreateBill(userID int, billType int, amount float64, category, occurredAt, 
 	return ResultOK(bill)
 }
 
-// QueryBills 查询账单
 func QueryBills(userID int, billType *int, startDate, endDate, category, member string) *Result[response.BillList] {
-	// 获取用户家庭ID
 	user, err := repository.GetUserByID(userID)
 	if err != nil {
 		logger.Warn("Get user error:", err.Error())
@@ -81,17 +87,14 @@ func QueryBills(userID int, billType *int, startDate, endDate, category, member 
 		return ResultFailed[response.BillList](http.StatusBadRequest, "用户未加入家庭")
 	}
 
-	// 查询账单记录
 	records, err := repository.GetTransactionRecordsByFamily(*user.FamilyID, billType, startDate, endDate, category, member)
 	if err != nil {
 		logger.Warn("Query transaction records error:", err.Error())
 		return ResultFailed[response.BillList](http.StatusInternalServerError, "Internal server error")
 	}
 
-	// 转换为响应格式
 	bills := make([]response.Bill, 0, len(records))
 	for _, record := range records {
-		// 获取分类信息
 		var categoryName string
 		var billType int
 		err = repository.DB.Table("Category").
@@ -103,7 +106,6 @@ func QueryBills(userID int, billType *int, startDate, endDate, category, member 
 			continue
 		}
 
-		// 获取用户名
 		var userName string
 		if record.UserID != nil {
 			err = repository.DB.Table("Users").
@@ -160,7 +162,7 @@ func CreateRecurringBill(userID int, billType int, amount float64, category, occ
 		return ResultFailed[response.RecurringBill](http.StatusBadRequest, "分类类型与账单类型不匹配")
 	}
 
-	recordID, err := repository.CreateTransactionRecord(userID, categoryModel.CategoryID, amount, parsedTime, note, "", "", "")
+	recordID, _, err := repository.CreateTransactionRecord(userID, categoryModel.CategoryID, amount, parsedTime, note, "", "", "")
 	if err != nil {
 		logger.Warn("Create transaction record error:", err.Error())
 		if err.Error() == "用户不存在或未关联家庭" {
@@ -189,21 +191,34 @@ func QueryRecurringBills(userID int) *Result[response.RecurringBillList] {
 	return ResultOK(response.RecurringBillList{Bills: []response.RecurringBill{}})
 }
 
-// GetIncomeStats 获取收入统计
 func GetIncomeStats(userID int, startDate, endDate, category string) *Result[response.Stats] {
-	// 获取统计数据
 	stats, err := repository.GetFamilyFinanceStats(userID, startDate, endDate)
 	if err != nil {
 		logger.Warn("Get finance stats error:", err.Error())
 		return ResultFailed[response.Stats](http.StatusInternalServerError, "Internal server error")
 	}
 
+	// 检查是否返回错误消息（用户没有所属家庭）
+	if len(stats) == 1 {
+		if message, exists := stats[0]["message"]; exists {
+			if msgStr, ok := message.(string); ok {
+				return ResultFailed[response.Stats](http.StatusBadRequest, msgStr)
+			}
+		}
+	}
+
 	var totalAmount float64
 	for _, stat := range stats {
-		// 只统计收入（type=1）
+		// 检查是否为收入类型 (income_or_expense = 1)
 		if incomeType, ok := stat["income_or_expense"].(int64); ok && incomeType == 1 {
+			// 处理 total_amount 的各种可能类型
 			if amount, ok := stat["total_amount"].(float64); ok {
 				totalAmount += amount
+			} else if amount, ok := stat["total_amount"].([]uint8); ok {
+				// MySQL decimal 类型可能返回为 []uint8
+				if amountFloat, parseErr := parseDecimalBytes(amount); parseErr == nil {
+					totalAmount += amountFloat
+				}
 			}
 		}
 	}
@@ -221,11 +236,24 @@ func GetExpenseStats(userID int, startDate, endDate, category string) *Result[re
 		return ResultFailed[response.Stats](http.StatusInternalServerError, "Internal server error")
 	}
 
+	// 检查是否返回错误消息（用户没有所属家庭）
+	if len(stats) == 1 {
+		if message, exists := stats[0]["message"]; exists {
+			if msgStr, ok := message.(string); ok {
+				return ResultFailed[response.Stats](http.StatusBadRequest, msgStr)
+			}
+		}
+	}
+
 	var totalAmount float64
 	for _, stat := range stats {
 		if expenseType, ok := stat["income_or_expense"].(int64); ok && expenseType == 0 {
 			if amount, ok := stat["total_amount"].(float64); ok {
 				totalAmount += amount
+			} else if amount, ok := stat["total_amount"].([]uint8); ok {
+				if amountFloat, parseErr := parseDecimalBytes(amount); parseErr == nil {
+					totalAmount += amountFloat
+				}
 			}
 		}
 	}
@@ -268,6 +296,12 @@ func stringValueFromPtr(ptr *string) string {
 		return ""
 	}
 	return *ptr
+}
+
+// parseDecimalBytes 解析MySQL decimal类型返回的字节数组
+func parseDecimalBytes(bytes []uint8) (float64, error) {
+	str := string(bytes)
+	return strconv.ParseFloat(str, 64)
 }
 
 func DeleteBill(billID int) *Result[string] {

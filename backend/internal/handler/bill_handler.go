@@ -7,12 +7,18 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
+	"github.com/wonderivan/logger"
 )
 
 func CreateBill(ctx *gin.Context) {
+	// DebugContext(ctx)
+	// DebugRequestBody(ctx)
+
 	var req request.CreateBill
 	err := ctx.ShouldBind(&req)
 	if err != nil {
+		logger.Warn("Failed to bind request:", err.Error())
+		logger.Warn("Request binding failed. Content-Type:", ctx.GetHeader("Content-Type"))
 		response.BadRequest(ctx, err.Error())
 		return
 	}
@@ -25,11 +31,12 @@ func CreateBill(ctx *gin.Context) {
 
 	userID, ok := userIDInterface.(int)
 	if !ok {
+		logger.Warn("Invalid user ID type")
 		response.BadRequest(ctx, "无效的用户ID")
 		return
 	}
 
-	result := service.CreateBill(userID, req.Type, req.Amount, req.Category, req.OccurredAt, req.Note, req.Merchant, req.Location, req.PaymentMethod)
+	result := service.CreateBill(userID, *req.Type, req.Amount, req.Category, req.OccurredAt, req.Note, req.Merchant, req.Location, req.PaymentMethod)
 
 	ResultToResponse(ctx, result, result.Data)
 }
@@ -161,23 +168,19 @@ func QueryBudget(ctx *gin.Context) {
 	ResultToResponse(ctx, result, result.Data)
 }
 
-// DeleteBill 删除账单
 func DeleteBill(ctx *gin.Context) {
-	// 从URL参数中获取账单ID
 	billIDStr := ctx.Param("id")
 	if billIDStr == "" {
 		response.BadRequest(ctx, "账单ID不能为空")
 		return
 	}
 
-	// 转换账单ID为整数
 	var billID int
 	if _, err := fmt.Sscanf(billIDStr, "%d", &billID); err != nil {
 		response.BadRequest(ctx, "无效的账单ID")
 		return
 	}
 
-	// 从JWT token中获取用户ID（可以用于后续权限验证）
 	userIDInterface, exists := ctx.Get("user_id")
 	if !exists {
 		response.Unauthorized(ctx, "未登录")
