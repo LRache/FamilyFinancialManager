@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>管家婆 - 注册</title>
+    <script src="https://cdn.jsdelivr.net.cn/npm/axios/dist/axios.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -162,128 +164,114 @@
             transition: width 0.3s ease, background-color 0.3s ease;
         }
 
-        .weak { background-color: #ff6b6b; }
-        .medium { background-color: #ffd93d; }
-        .strong { background-color: #6bcf7f; }
+        .weak {
+            background-color: #ff6b6b;
+        }
+
+        .medium {
+            background-color: #ffd93d;
+        }
+
+        .strong {
+            background-color: #6bcf7f;
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="logo">💰</div>
         <h1 class="welcome-text">加入管家婆</h1>
         <p class="subtitle">开始您的家庭财务管理之旅</p>
-        
         <form>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="firstName">姓</label>
-                    <input type="text" id="firstName" name="firstName" placeholder="请输入姓" required>
-                </div>
-                <div class="form-group">
-                    <label for="lastName">名</label>
-                    <input type="text" id="lastName" name="lastName" placeholder="请输入名" required>
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label for="email">邮箱</label>
-                <input type="email" id="email" name="email" placeholder="请输入邮箱地址" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="phone">手机号码</label>
-                <input type="tel" id="phone" name="phone" placeholder="请输入手机号码" required>
-            </div>
-            
             <div class="form-group">
                 <label for="username">用户名</label>
                 <input type="text" id="username" name="username" placeholder="请设置用户名" required>
             </div>
-            
+            <div class="form-group">
+                <label for="email">邮箱</label>
+                <input type="email" id="email" name="email" placeholder="请输入邮箱" required>
+            </div>
             <div class="form-group">
                 <label for="password">密码</label>
                 <input type="password" id="password" name="password" placeholder="请设置密码" required>
-                <div class="password-strength">
-                    <div class="strength-bar">
-                        <div class="strength-fill" id="strengthFill"></div>
-                    </div>
-                </div>
             </div>
-            
+
             <div class="form-group">
                 <label for="confirmPassword">确认密码</label>
                 <input type="password" id="confirmPassword" name="confirmPassword" placeholder="请再次输入密码" required>
             </div>
-            
+
             <button type="submit" class="register-btn">立即注册</button>
         </form>
-        
         <p style="margin-top: 20px;">
             已有账号？<a href="login.html" class="switch-link">立即登录</a>
         </p>
-        
-        <div class="terms">
-            注册即表示您同意我们的<a href="#">服务条款</a>和<a href="#">隐私政策</a>
-        </div>
+
     </div>
 
     <script>
-        // 密码强度检测
-        document.getElementById('password').addEventListener('input', function() {
-            const password = this.value;
-            const strengthFill = document.getElementById('strengthFill');
-            let strength = 0;
-            
-            if (password.length >= 8) strength++;
-            if (/[a-z]/.test(password)) strength++;
-            if (/[A-Z]/.test(password)) strength++;
-            if (/[0-9]/.test(password)) strength++;
-            if (/[^A-Za-z0-9]/.test(password)) strength++;
-            
-            let width = (strength / 5) * 100;
-            let className = '';
-            
-            if (strength <= 2) {
-                className = 'weak';
-            } else if (strength <= 3) {
-                className = 'medium';
-            } else {
-                className = 'strong';
-            }
-            
-            strengthFill.style.width = width + '%';
-            strengthFill.className = 'strength-fill ' + className;
-        });
+
 
         // 表单提交处理
-        document.querySelector('form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
+        document.querySelector('form').addEventListener('submit', function (e) {
+            e.preventDefault()
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
-            
+
             if (password !== confirmPassword) {
                 alert('两次输入的密码不一致');
                 return;
             }
-            
+
             // 检查所有必填字段
             const requiredFields = this.querySelectorAll('[required]');
             let isValid = true;
-            
+
             requiredFields.forEach(field => {
                 if (!field.value.trim()) {
                     isValid = false;
                 }
             });
-            
+
+            // 简单邮箱格式校验
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            if (!emailRegex.test(email)) {
+                alert('邮箱格式不正确');
+                return;
+            }
+
             if (isValid) {
-                alert('注册成功！欢迎加入管家婆');
-                // 这里可以添加实际的注册逻辑
+                axios.post("http://113.44.33.81:8080/api/v1/auth/register", {
+                    username: username,
+                    password: password,
+                    email: email
+                }).then(response => {
+                    if (response.data.message === 'OK') {
+                        alert('注册成功')
+                        sessionStorage.setItem("token", response.data.response.token);
+                        sessionStorage.setItem("username", username);
+                        location.assign("index.html")
+                    }
+                    else {
+                        alert('注册失败')
+                    }
+                }).catch(error => {
+                    if (error.status === 409) {
+                        alert("该用户已注册");
+                    }
+                    else {
+                        alert("注册失败")
+                    }
+                })
             } else {
                 alert('请填写完整的注册信息');
             }
         });
     </script>
 </body>
+
 </html>
