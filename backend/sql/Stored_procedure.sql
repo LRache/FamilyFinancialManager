@@ -123,7 +123,6 @@ BEGIN
     DECLARE v_role TINYINT;
     DECLARE v_count INT;
 
-    -- 1. 检查用户是否是管理员
     SELECT familyid, role INTO v_familyid, v_role
     FROM Users
     WHERE userid = p_userid;
@@ -133,12 +132,10 @@ BEGIN
             SET MESSAGE_TEXT = '只有家庭管理员才能设置家庭预算';
     END IF;
 
-    -- 2. 检查是否已有该时间的预算记录
     SELECT COUNT(*) INTO v_count
     FROM Budget
     WHERE familyid = v_familyid AND time = p_time;
 
-    -- 3. 如果存在则更新，否则插入
     IF v_count > 0 THEN
         UPDATE Budget
         SET amount = p_amount
@@ -161,13 +158,11 @@ CREATE PROCEDURE GetFamilyFinanceByUser(
 )
 BEGIN
     DECLARE v_familyid INT;
-
-    -- 找到用户所属家庭
+    
     SELECT familyid INTO v_familyid
     FROM Users
     WHERE userid = p_userid;
 
-    -- 如果用户没有家庭，直接返回空
     IF v_familyid IS NULL THEN
         SELECT '该用户没有所属家庭' AS message;
     ELSE
