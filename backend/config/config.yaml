@@ -2,19 +2,19 @@ app:
   host: 0.0.0.0
   port: 7070
   router_prefix: api/v1
-  jwt_secret: 050302
+  jwt_secret: 
 
 database:
   host: 127.0.0.1
   port: 3306
-  username: rache
-  password: "050302"
+  username: 
+  password: 
   dbname: rache_familyfinacialmanager
 
 email:
-  smtp_host: smtp.qq.com
-  smtp_port: 587
-  username: FFM
-  password: vkrgthzwuplfdfih
-  from_email: 2746324475@qq.com
+  smtp_host: 
+  smtp_port: 
+  account: 
+  password: 
+  from_email: 
   enabled: true

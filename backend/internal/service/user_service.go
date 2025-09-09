@@ -8,7 +8,7 @@ import (
 	"github.com/wonderivan/logger"
 )
 
-func RegisterUser(username string, password string) *Result[response.UserLogin] {
+func RegisterUser(username string, password string, email string) *Result[response.UserLogin] {
 	ok, err := repository.UserExists(username)
 	if err != nil {
 		logger.Warn("Internal server error", err.Error())
@@ -19,13 +19,12 @@ func RegisterUser(username string, password string) *Result[response.UserLogin] 
 		return ResultFailed[response.UserLogin](http.StatusConflict, "User already exists")
 	}
 
-	id, err := repository.CreateUser(username, password)
+	id, err := repository.CreateUser(username, password, email)
 	if err != nil {
 		logger.Warn("Internal server error", err.Error())
 		return ResultFailed[response.UserLogin](http.StatusInternalServerError, "Internal server error")
 	}
 
-	// 注册成功后直接生成token
 	token := GenerateAuthToken(id)
 
 	return ResultOK(response.UserLogin{

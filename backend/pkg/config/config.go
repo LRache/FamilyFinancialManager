@@ -20,12 +20,11 @@ type DatabaseConfig struct {
 }
 
 type EmailConfig struct {
-	SMTPHost  string
-	SMTPPort  int
-	Username  string
-	Password  string
-	FromEmail string
-	Enabled   bool
+	SMTPHost string
+	SMTPPort int
+	Account  string
+	Password string
+	Enabled  bool
 }
 
 var App *AppConfig
@@ -57,9 +56,8 @@ func Init() error {
 	Email = &EmailConfig{}
 	Email.SMTPHost = v.GetString("email.smtp_host")
 	Email.SMTPPort = v.GetInt("email.smtp_port")
-	Email.Username = v.GetString("email.username")
+	Email.Account = v.GetString("email.account")
 	Email.Password = v.GetString("email.password")
-	Email.FromEmail = v.GetString("email.from_email")
 	Email.Enabled = v.GetBool("email.enabled")
 
 	return nil

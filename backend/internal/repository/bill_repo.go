@@ -6,6 +6,8 @@ import (
 	"errors"
 	"strings"
 	"time"
+
+	"github.com/wonderivan/logger"
 )
 
 // CreateTransactionRecord 调用存储过程添加收支记录，返回记录ID和是否超支标志
@@ -13,7 +15,6 @@ func CreateTransactionRecord(userID int, categoryID int, amount float64, occurre
 	var recordID int
 	var exceedFlag sql.NullInt32
 
-	// 调用存储过程 AddTransactionRecord，注意输出参数的使用
 	err := DB.Exec("CALL AddTransactionRecord(?, ?, ?, ?, ?, ?, ?, ?, @exceed_flag)",
 		userID, categoryID, amount, occurredAt,
 		stringPtrFromString(note),
@@ -22,7 +23,6 @@ func CreateTransactionRecord(userID int, categoryID int, amount float64, occurre
 		stringPtrFromString(paymentMethod)).Error
 
 	if err != nil {
-		// 检查是否是MySQL 45000异常（业务逻辑错误）
 		errorMsg := err.Error()
 		if strings.Contains(errorMsg, "Error 1644") {
 			if strings.Contains(errorMsg, "分类不存在") {
@@ -35,19 +35,18 @@ func CreateTransactionRecord(userID int, categoryID int, amount float64, occurre
 		return 0, false, err
 	}
 
-	// 获取输出参数
 	err = DB.Raw("SELECT @exceed_flag").Scan(&exceedFlag).Error
 	if err != nil {
 		return 0, false, err
 	}
 
-	// 获取最后插入的记录ID
+	logger.Info("Exceed flag value:", exceedFlag)
+
 	err = DB.Raw("SELECT LAST_INSERT_ID()").Scan(&recordID).Error
 	if err != nil {
 		return 0, false, err
 	}
 
-	// 处理超支标志，如果是NULL则默认为false
 	isOverBudget := exceedFlag.Valid && exceedFlag.Int32 == 1
 
 	return recordID, isOverBudget, nil

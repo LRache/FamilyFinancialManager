@@ -3,14 +3,16 @@ package service
 import (
 	"backend/internal/repository"
 	"backend/pkg/config"
+	"crypto/tls"
 	"fmt"
-	"net/smtp"
-	"strconv"
 
 	"github.com/wonderivan/logger"
+	"gopkg.in/gomail.v2"
 )
 
-func SendOverBudgetAlert(familyID int, amount float64, category string, currentSpent float64, budgetLimit float64) error {
+func SendOverBudgetAlert(familyID int, amount float64, category string) error {
+	logger.Info("Preparing to send over budget alert email...")
+
 	admin, err := repository.GetFamilyAdminByFamilyID(familyID)
 	if err != nil {
 		logger.Warn("Failed to get family admin:", err.Error())
@@ -29,15 +31,12 @@ func SendOverBudgetAlert(familyID int, amount float64, category string, currentS
 您的家庭在 "%s" 分类下的支出已超过预算：
 
 本次支出金额：%.2f 元
-当前总支出：%.2f 元
-预算限额：%.2f 元
-超支金额：%.2f 元
 
 请及时关注家庭财务状况。
 
 此致
 家庭财务管理系统
-`, category, amount/100.0, currentSpent/100.0, budgetLimit/100.0, (currentSpent-budgetLimit)/100.0)
+`, category, amount)
 
 	// 发送邮件
 	err = sendEmail(*admin.Email, subject, body)
@@ -64,15 +63,16 @@ func sendEmail(to, subject, body string) error {
 	// 使用配置文件中的设置
 	emailConfig := config.Email
 
-	// 构造邮件
-	msg := []byte(fmt.Sprintf("To: %s\r\nSubject: %s\r\n\r\n%s\r\n", to, subject, body))
+	m := gomail.NewMessage()
+	m.SetHeader("From", emailConfig.Account)
+	m.SetHeader("To", to)
+	m.SetHeader("Subject", subject)
+	m.SetBody("text/plain", body)
 
-	// 连接SMTP服务器
-	auth := smtp.PlainAuth("", emailConfig.Username, emailConfig.Password, emailConfig.SMTPHost)
-	addr := emailConfig.SMTPHost + ":" + strconv.Itoa(emailConfig.SMTPPort)
-
-	err := smtp.SendMail(addr, auth, emailConfig.FromEmail, []string{to}, msg)
-	if err != nil {
+	d := gomail.NewDialer(emailConfig.SMTPHost, emailConfig.SMTPPort, emailConfig.Account, emailConfig.Password)
+	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+	// gomail v2 默认支持 587 端口的 STARTTLS，无需额外配置
+	if err := d.DialAndSend(m); err != nil {
 		return fmt.Errorf("failed to send email: %v", err)
 	}
 

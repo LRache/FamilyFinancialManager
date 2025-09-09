@@ -9,14 +9,14 @@ import (
 )
 
 func RegisterUser(ctx *gin.Context) {
-	var req request.UserLogin
+	var req request.UserRegister
 	err := ctx.ShouldBind(&req)
 	if err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
 	}
 
-	result := service.RegisterUser(req.Username, req.Password)
+	result := service.RegisterUser(req.Username, req.Password, req.Email)
 
 	ResultToResponse(ctx, result, result.Data)
 }

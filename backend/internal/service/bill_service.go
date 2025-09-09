@@ -26,13 +26,11 @@ func CreateBill(userID int, billType int, amount float64, category, occurredAt, 
 		return ResultFailed[response.Bill](http.StatusBadRequest, "分类不存在")
 	}
 
-	// 验证分类类型与账单类型是否匹配
 	if categoryModel.Type != billType {
 		logger.Warn("Category type does not match bill type")
 		return ResultFailed[response.Bill](http.StatusBadRequest, "分类类型与账单类型不匹配")
 	}
 
-	// 创建账单记录
 	recordID, isOverBudget, err := repository.CreateTransactionRecord(userID, categoryModel.CategoryID, amount, parsedTime, note, merchant, location, paymentMethod)
 	if err != nil {
 		logger.Warn("Create transaction record error:", err.Error())
@@ -42,17 +40,16 @@ func CreateBill(userID int, billType int, amount float64, category, occurredAt, 
 		return ResultFailed[response.Bill](http.StatusInternalServerError, "Internal server error")
 	}
 
-	// 获取用户信息用于响应
 	user, err := repository.GetUserByID(userID)
 	if err != nil {
 		logger.Warn("Get user error:", err.Error())
 		return ResultFailed[response.Bill](http.StatusInternalServerError, "Internal server error")
 	}
 
-	if isOverBudget && billType == 0 { // 0表示支出
+	if isOverBudget && billType == 0 {
 		go func() {
 			if user.FamilyID != nil {
-				err := SendOverBudgetAlert(*user.FamilyID, amount, category, 0, 0) // 暂时传0，后续可以优化获取实际数据
+				err := SendOverBudgetAlert(*user.FamilyID, amount, category)
 				if err != nil {
 					logger.Warn("Failed to send over budget alert:", err.Error())
 				}

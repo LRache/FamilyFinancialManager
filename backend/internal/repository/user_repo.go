@@ -6,8 +6,8 @@ import (
 	"gorm.io/gorm"
 )
 
-func CreateUser(username string, password string) (int, error) {
-	result := DB.Exec("CALL sp_register_api(?, ?, @userid)", username, password)
+func CreateUser(username string, password string, email string) (int, error) {
+	result := DB.Exec("CALL sp_register_api(?, ?, ?, @userid)", username, password, email)
 	if result.Error != nil {
 		return 0, result.Error
 	}
