@@ -211,7 +211,7 @@
     </div>
 
     <script>
-
+        const baseUrl = "http://lemonyaweb.top:16384"
 
         // 表单提交处理
         document.querySelector('form').addEventListener('submit', function (e) {
@@ -245,7 +245,7 @@
             }
 
             if (isValid) {
-                axios.post("http://113.44.33.81:8080/api/v1/auth/register", {
+                axios.post(baseUrl + "/api/v1/auth/register", {
                     username: username,
                     password: password,
                     email: email

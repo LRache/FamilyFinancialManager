@@ -195,6 +195,7 @@
     </div>
 
     <script>
+        const baseUrl = "http://lemonyaweb.top:16384"
         document.querySelector('form').addEventListener('submit', function (e) {
             e.preventDefault();
             const username = document.getElementById('username').value;
@@ -203,7 +204,7 @@
             if (username && password) {
                 console.log(0);
                 
-                axios.post("http://113.44.33.81:8080/api/v1/auth/login",{
+                axios.post(baseUrl+"/api/v1/auth/login",{
                     username: username,
                     password: password
                 }).then(response=>{

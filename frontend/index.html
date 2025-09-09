@@ -1504,6 +1504,10 @@
             </div>
             <form id="budgetForm">
                 <div class="form-group">
+                    <label>预算月份</label>
+                    <input name="budgetMonth" type="month" required>
+                </div>
+                <div class="form-group">
                     <label>本月预算金额</label>
                     <input name="budgetAmount" type="number" placeholder="请输入本月预算金额" min="0" step="0.01" required>
                 </div>
@@ -1561,6 +1565,9 @@
     </div>
 
     <script>
+
+        const baseUrl = "http://lemonyaweb.top:16384"
+
         // 成员数组
         let members = [];
 
@@ -1571,12 +1578,54 @@
         // 预算：使用内存中的当前预算对象替代本地存储
         let currentBudget = null;
 
-        // 获取当前月份首日，格式如 2025-9-1（不补零，符合后端要求）
+        // 预算本地存储工具方法
+        function getBudgetStorageKey(startDate) {
+            const user = username || 'guest';
+            return `ffm_budget_${user}_${startDate}`;
+        }
+
+        function normalizeBudget(budget) {
+            if (!budget) return null;
+            const start = budget.start_date || budget.StartDate || budget.time || budget.Time;
+            const amount = (budget.amount !== undefined ? budget.amount : budget.Amount);
+            const note = (budget.note !== undefined ? budget.note : budget.Note) || '';
+            if (!start) return null;
+            const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+            if (isNaN(numAmount)) return { start_date: start, amount: 0, note };
+            return { start_date: start, amount: numAmount, note };
+        }
+
+        function saveBudgetToLocal(budget) {
+            const normalized = normalizeBudget(budget);
+            if (!normalized || !normalized.start_date) return;
+            try {
+                const key = getBudgetStorageKey(normalized.start_date);
+                localStorage.setItem(key, JSON.stringify(normalized));
+            } catch (e) {
+                console.log('保存预算到本地失败:', e);
+            }
+        }
+
+        function loadBudgetFromLocal() {
+            try {
+                const startDate = getBudgetMonthStartDate();
+                const key = getBudgetStorageKey(startDate);
+                const raw = localStorage.getItem(key);
+                if (!raw) return null;
+                const parsed = JSON.parse(raw);
+                return normalizeBudget(parsed);
+            } catch (e) {
+                console.log('从本地读取预算失败:', e);
+                return null;
+            }
+        }
+
+        // 获取当前月份首日，格式如 YYYY-MM-01（补零）
         function getBudgetMonthStartDate() {
             const now = new Date();
             const y = now.getFullYear();
-            const m = now.getMonth() + 1; // 1-12
-            return `${y}-${m}-1`;
+            const m = (now.getMonth() + 1).toString().padStart(2, '0');
+            return `${y}-${m}-01`;
         }
 
         // 页面切换功能
@@ -1734,6 +1783,16 @@
             const modal = document.getElementById(modalType + 'Modal');
             if (modal) {
                 modal.style.display = 'block';
+                // 打开预算弹窗时，默认选择当前月
+                if (modalType === 'budget') {
+                    const monthInput = modal.querySelector('input[name="budgetMonth"]');
+                    if (monthInput) {
+                        const now = new Date();
+                        const y = now.getFullYear();
+                        const m = (now.getMonth() + 1).toString().padStart(2, '0');
+                        monthInput.value = `${y}-${m}`;
+                    }
+                }
             }
         }
 
@@ -1777,7 +1836,7 @@
 
             axios({
                 method: 'post',
-                url: 'http://113.44.33.81:8080/api/v1/bills',
+                url: baseUrl + '/api/v1/bills',
                 headers: { 'Content-Type': 'application/json', Authorization: token },
                 data: payload
             }).then(() => {
@@ -1806,7 +1865,7 @@
             };
             axios({
                 method: 'post',
-                url: 'http://113.44.33.81:8080/api/v1/bills',
+                url: baseUrl + '/api/v1/bills',
                 headers: { 'Content-Type': 'application/json', Authorization: token },
                 data: payload
             }).then(() => {
@@ -1828,13 +1887,18 @@
             const formData = new FormData(this);
             const budgetAmount = parseFloat(formData.get('budgetAmount'));
             const budgetNote = formData.get('budgetNote') || '';
+            const budgetMonth = formData.get('budgetMonth'); // YYYY-MM
 
             if (budgetAmount <= 0) {
                 alert('预算金额必须大于0');
                 return;
             }
 
-            const startDate = getBudgetMonthStartDate();
+            // 生成选择月份的首日
+            let startDate = getBudgetMonthStartDate();
+            if (budgetMonth && /\d{4}-\d{2}/.test(budgetMonth)) {
+                startDate = `${budgetMonth}-01`;
+            }
             const payload = {
                 amount: budgetAmount,
                 start_date: startDate,
@@ -1843,16 +1907,18 @@
 
             axios({
                 method: 'post',
-                url: 'http://113.44.33.81:8080/api/v1/budget',
+                url: baseUrl + '/api/v1/budget',
                 headers: { 'Content-Type': 'application/json', Authorization: token },
                 data: payload
             }).then(response => {
                 // 成功后，更新内存中的预算并刷新显示
-                currentBudget = {
+                currentBudget = normalizeBudget({
                     amount: budgetAmount,
                     start_date: startDate,
                     note: budgetNote
-                };
+                });
+                // 本地持久化
+                saveBudgetToLocal(currentBudget);
                 alert('预算设置成功！');
                 closeModal('budget');
                 this.reset();
@@ -1870,10 +1936,21 @@
             renderFamilyStatus();
             showPage('dashboard_one');
 
-            // 初始化预算：从后端拉取本月预算
-            fetchCurrentBudget().finally(() => {
-                updateBudgetDisplay();
-            });
+            // 初始化预算：优先从后端拉取，失败或无数据则从本地恢复（默认当月）
+            fetchCurrentBudget()
+                .then(() => {
+                    if (!currentBudget || !currentBudget.amount) {
+                        const local = loadBudgetFromLocal();
+                        if (local) currentBudget = local;
+                    }
+                })
+                .catch(() => {
+                    const local = loadBudgetFromLocal();
+                    if (local) currentBudget = local;
+                })
+                .finally(() => {
+                    updateBudgetDisplay();
+                });
 
             // 时间范围选择器已移除，固定为6个月数据
 
@@ -1884,7 +1961,7 @@
 
         // axios({
         //     method: 'get',
-        //     url: 'http://113.44.33.81:8080/api/v1/bills/income',
+        //     url:  baseUrl + '/api/v1/bills/income',
         //     headers: { 'Content-Type': 'application/json', Authorization: token },
         //     params: {
         //         start_date: "2025-9-4",
@@ -1967,7 +2044,10 @@
                         if (isNaN(date.getTime())) {
                             formattedDate = '日期无效';
                         } else {
-                            formattedDate = date.toLocaleDateString('zh-CN') + ' ' + date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+                            const y = date.getFullYear();
+                            const m = String(date.getMonth() + 1).padStart(2, '0');
+                            const d = String(date.getDate()).padStart(2, '0');
+                            formattedDate = `${y}-${m}-${d}`;
                         }
                     } else {
                         formattedDate = '无日期';
@@ -2040,7 +2120,10 @@
                         if (isNaN(date.getTime())) {
                             formattedDate = '日期无效';
                         } else {
-                            formattedDate = date.toLocaleDateString('zh-CN') + ' ' + date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+                            const y = date.getFullYear();
+                            const m = String(date.getMonth() + 1).padStart(2, '0');
+                            const d = String(date.getDate()).padStart(2, '0');
+                            formattedDate = `${y}-${m}-${d}`;
                         }
                     } else {
                         formattedDate = '无日期';
@@ -2085,7 +2168,7 @@
                 // 获取当前用户的账单数据（使用member参数）
                 const response = await axios({
                     method: 'get',
-                    url: 'http://113.44.33.81:8080/api/v1/bills',
+                    url: baseUrl + '/api/v1/bills',
                     headers: { 'Content-Type': 'application/json', Authorization: token },
                     params: {
                         start_date: startDate,
@@ -2132,8 +2215,8 @@
                 const endDate = `${year}-${month.toString().padStart(2, '0')}-${lastDay}`;
 
                 const url = type === 'income' ?
-                    'http://113.44.33.81:8080/api/v1/bills/income' :
-                    'http://113.44.33.81:8080/api/v1/bills/outcome';
+                    baseUrl + '/api/v1/bills/income' :
+                    baseUrl + '/api/v1/bills/outcome';
 
                 const params = {
                     start_date: startDate,
@@ -2250,7 +2333,7 @@
                 // 获取所有家庭成员的账单数据（不传member参数）
                 const response = await axios({
                     method: 'get',
-                    url: 'http://113.44.33.81:8080/api/v1/bills',
+                    url: baseUrl + '/api/v1/bills',
                     headers: { 'Content-Type': 'application/json', Authorization: token },
                     params: {
                         start_date: startDate,
@@ -2346,7 +2429,10 @@
                         if (isNaN(date.getTime())) {
                             formattedDate = '日期无效';
                         } else {
-                            formattedDate = date.toLocaleDateString('zh-CN') + ' ' + date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+                            const y = date.getFullYear();
+                            const m = String(date.getMonth() + 1).padStart(2, '0');
+                            const d = String(date.getDate()).padStart(2, '0');
+                            formattedDate = `${y}-${m}-${d}`;
                         }
                     } else {
                         formattedDate = '无日期';
@@ -2648,7 +2734,10 @@
                     if (isNaN(date.getTime())) {
                         formattedDate = '日期无效';
                     } else {
-                        formattedDate = date.toLocaleDateString('zh-CN') + ' ' + date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+                        const y = date.getFullYear();
+                        const m = String(date.getMonth() + 1).padStart(2, '0');
+                        const d = String(date.getDate()).padStart(2, '0');
+                        formattedDate = `${y}-${m}-${d}`;
                     }
                 } else {
                     formattedDate = '无日期';
@@ -2679,17 +2768,24 @@
         updateFamilyData();
 
         // 预算相关函数
-        async function fetchCurrentBudget() {
+        async function fetchCurrentBudget() {            
             try {
                 const startDate = getBudgetMonthStartDate();
                 const response = await axios({
                     method: 'get',
-                    url: 'http://113.44.33.81:8080/api/v1/budget',
+                    url: baseUrl + '/api/v1/budget',
                     headers: { 'Content-Type': 'application/json', Authorization: token },
                     params: { start_date: startDate }
                 });
-                if (response && response.data && response.data.response && response.data.response.budget) {
-                    currentBudget = response.data.response.budget;
+                // 统一按照后端通用响应结构读取
+                if (response && response.data && response.data.response) {
+                    const resp = response.data.response;
+                    // 兼容两种可能：直接返回Budget对象或包在budget字段里
+                    currentBudget = normalizeBudget(resp.budget ? resp.budget : resp);
+                    // 同步写入本地缓存
+                    if (currentBudget) {
+                        saveBudgetToLocal(currentBudget);
+                    }
                 } else {
                     currentBudget = null;
                 }
@@ -2700,19 +2796,19 @@
         }
 
         function getCurrentBudget() {
-            return currentBudget;
+            return currentBudget || loadBudgetFromLocal();
         }
 
         // 更新预算显示
         function updateBudgetDisplay() {
-            const budget = getCurrentBudget();
+            const budget = normalizeBudget(getCurrentBudget());
             const budgetDisplay = document.getElementById('budgetDisplay');
             const budgetAmount = document.getElementById('budgetAmount');
 
             if (budget && budget.amount > 0) {
                 budgetDisplay.style.display = 'flex';
                 // 显示预算金额和备注
-                let displayText = `¥${budget.amount.toLocaleString()}`;
+                let displayText = `¥${Number(budget.amount).toLocaleString()}`;
                 if (budget.note && budget.note.trim()) {
                     displayText += ` (${budget.note})`;
                 }
@@ -2724,7 +2820,7 @@
 
         // 计算剩余预算
         function calculateRemainingBudget(totalExpense) {
-            const budget = getCurrentBudget();
+            const budget = normalizeBudget(getCurrentBudget());
             if (!budget || budget.amount <= 0) {
                 return 0;
             }
@@ -2823,7 +2919,7 @@
 
                     const response = await axios({
                         method: 'get',
-                        url: 'http://113.44.33.81:8080/api/v1/bills',
+                        url: baseUrl + '/api/v1/bills',
                         headers: { 'Content-Type': 'application/json', Authorization: token },
                         params: {
                             start_date: startDate,
@@ -3238,7 +3334,7 @@
         // 预算
         // axios({
         //     method: 'post',
-        //     url: 'http://113.44.33.81:8080/api/v1/budget',
+        //     url: baseUrl + '/api/v1/budget',
         //     headers: { 'Content-Type': 'application/json', Authorization: token },
         //     data: {
         //         amount: 10000,
@@ -3267,7 +3363,7 @@
         function fetchMembers() {
             return axios({
                 method: 'get',
-                url: 'http://113.44.33.81:8080/api/v1/family/members',
+                url: baseUrl + '/api/v1/family/members',
                 headers: { Authorization: token }
             }).then(response => {
                 try {
@@ -3297,7 +3393,7 @@
             if (!familyname) return;
             axios({
                 method: 'post',
-                url: 'http://113.44.33.81:8080/api/v1/family',
+                url: baseUrl + '/api/v1/family',
                 headers: { Authorization: token },
                 data: { familyname: familyname }
             }).then(res => {
@@ -3315,7 +3411,7 @@
             if (!usernameToInvite) return;
             axios({
                 method: 'post',
-                url: 'http://113.44.33.81:8080/api/v1/family/members',
+                url: baseUrl + '/api/v1/family/members',
                 headers: { 'Content-Type': 'application/json', Authorization: token },
                 data: { username: usernameToInvite }
             }).then(() => {
@@ -3408,7 +3504,7 @@
                     const endDate = `${y}-${String(m).padStart(2, '0')}-${lastDay}`;
                     const response = await axios({
                         method: 'get',
-                        url: 'http://113.44.33.81:8080/api/v1/bills',
+                        url: baseUrl + '/api/v1/bills',
                         headers: { 'Content-Type': 'application/json', Authorization: token },
                         params: { start_date: startDate, end_date: endDate }
                     });
