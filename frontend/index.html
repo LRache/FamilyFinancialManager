@@ -2065,8 +2065,11 @@
                                     <p>${formattedDate} | ${transaction.category}</p>
                                 </div>
                             </div>
-                            <div class="transaction-amount ${isIncome ? 'amount-income' : 'amount-expense'}">
-                                ${isIncome ? '+' : '-'}¥${amount.toFixed(2)}
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div class="transaction-amount ${isIncome ? 'amount-income' : 'amount-expense'}">
+                                    ${isIncome ? '+' : '-'}¥${amount.toFixed(2)}
+                                </div>
+                                <button onclick="deleteBill(${transaction.id})" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">删除</button>
                             </div>
                         </div>
                     `;
@@ -2141,8 +2144,11 @@
                                     <p>${formattedDate} | ${transaction.category}</p>
                                 </div>
                             </div>
-                            <div class="transaction-amount ${isIncome ? 'amount-income' : 'amount-expense'}">
-                                ${isIncome ? '+' : '-'}¥${amount.toFixed(2)}
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div class="transaction-amount ${isIncome ? 'amount-income' : 'amount-expense'}">
+                                    ${isIncome ? '+' : '-'}¥${amount.toFixed(2)}
+                                </div>
+                                <button onclick="deleteBill(${transaction.id})" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">删除</button>
                             </div>
                         </div>
                     `;
@@ -2448,8 +2454,11 @@
                                     <p>${formattedDate} | ${transaction.category} | ${transaction.member || '未知成员'}</p>
                                 </div>
                             </div>
-                            <div class="transaction-amount ${isIncome ? 'amount-income' : 'amount-expense'}">
-                                ${isIncome ? '+' : '-'}¥${amount.toFixed(2)}
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div class="transaction-amount ${isIncome ? 'amount-income' : 'amount-expense'}">
+                                    ${isIncome ? '+' : '-'}¥${amount.toFixed(2)}
+                                </div>
+                                <button onclick="deleteBill(${transaction.id})" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">删除</button>
                             </div>
                         </div>
                     `;
@@ -2762,6 +2771,27 @@
             });
 
             transactionsList.innerHTML = html;
+        }
+
+        // 删除账单的函数
+        function deleteBill(id) {
+            if (!confirm('确定要删除这条账单记录吗？')) {
+                return;
+            }
+
+            axios({
+                method: 'delete',
+                url: baseUrl + '/api/v1/bills/' + id,
+                headers: { 'Content-Type': 'application/json', Authorization: token },
+            }).then(() => {
+                alert('账单删除成功');
+                // 刷新数据
+                loadPersonalBills();
+                updateFamilyData();
+            }).catch(err => {
+                console.log(err);
+                alert('删除失败，请稍后重试');
+            });
         }
 
         // 在页面加载时更新家庭数据
