@@ -2385,7 +2385,6 @@
                     const allBills = response.data.response.bills || [];
                     console.log('家庭所有账单数据:', allBills);
 
-                    // 按时间排序（最新的在前）
                     const sortedBills = allBills.sort((a, b) => new Date(b.occurred_at) - new Date(a.occurred_at));
 
                     return sortedBills;
@@ -2634,21 +2633,23 @@
             }
 
             // 获取家庭账单数据
-            const now = new Date();
-            const currentYear = now.getFullYear();
-            const currentMonth = now.getMonth() + 1;
-
-            // getFamilyBillsData(currentYear, currentMonth).then(familyBills => {
-            getAllFamilyBillsData(currentYear, currentMonth).then(familyBills => {
+            getAllFamilyBillsData().then(familyBills => {
+                // 先根据类型过滤
+                let filteredBills = familyBills;
+                if (type === 'income') {
+                    filteredBills = familyBills.filter(bill => bill.type === 1);
+                } else if (type === 'expense') {
+                    filteredBills = familyBills.filter(bill => bill.type === 0);
+                }
                 // 存储原始数据用于筛选
-                window.currentFamilyBills = familyBills;
+                window.currentFamilyBills = filteredBills;
                 window.currentFamilyBillsType = type;
 
                 // 初始化筛选器
                 initFamilyTransactionsFilters(type);
 
                 // 渲染交易记录
-                renderFilteredFamilyTransactions(familyBills, type);
+                renderFilteredFamilyTransactions(filteredBills, type);
 
                 modal.style.display = 'block';
             }).catch(err => {
