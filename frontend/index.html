@@ -1575,10 +1575,10 @@
         const token = sessionStorage.getItem("token")
         const username = sessionStorage.getItem("username")
 
-        // 预算：使用内存中的当前预算对象替代本地存储
+
         let currentBudget = null;
 
-        // 预算本地存储工具方法
+       
         function getBudgetStorageKey(startDate) {
             const user = username || 'guest';
             return `ffm_budget_${user}_${startDate}`;
@@ -2177,8 +2177,10 @@
                     url: baseUrl + '/api/v1/bills',
                     headers: { 'Content-Type': 'application/json', Authorization: token },
                     params: {
-                        start_date: startDate,
-                        end_date: endDate,
+                        // start_date: startDate,
+                        // end_date: endDate,
+                        start_date: "",
+                        end_date: "",
                         member: username // 使用当前用户名作为member参数
                     }
                 });
@@ -2364,6 +2366,38 @@
             }
         }
 
+        async function getAllFamilyBillsData() {
+            try {
+                // 计算月份的开始和结束日期
+
+                // 获取所有家庭成员的账单数据（不传member参数）
+                const response = await axios({
+                    method: 'get',
+                    url: baseUrl + '/api/v1/bills',
+                    headers: { 'Content-Type': 'application/json', Authorization: token },
+                    params: {
+                        start_date: "",
+                        end_date: ""
+                    }
+                });
+
+                if (response.data.message === "OK") {
+                    const allBills = response.data.response.bills || [];
+                    console.log('家庭所有账单数据:', allBills);
+
+                    // 按时间排序（最新的在前）
+                    const sortedBills = allBills.sort((a, b) => new Date(b.occurred_at) - new Date(a.occurred_at));
+
+                    return sortedBills;
+                }
+
+                return [];
+            } catch (err) {
+                console.log('获取家庭账单数据失败:', err);
+                return [];
+            }
+        }
+
         // 更新家庭数据
         async function updateFamilyData() {
             const now = new Date();
@@ -2382,7 +2416,8 @@
                 console.log('家庭总收入:', totalIncome, '家庭总支出:', totalExpense, '家庭总结余:', totalBalance);
 
                 // 获取家庭所有账单数据
-                const familyBills = await getFamilyBillsData(currentYear, currentMonth);
+                // const familyBills = await getFamilyBillsData(currentYear, currentMonth);
+                const familyBills = await getAllFamilyBillsData();
 
                 // 更新各个页面的数据
                 updateFamilyIncomePage(totalIncome, familyBills);
@@ -2603,7 +2638,8 @@
             const currentYear = now.getFullYear();
             const currentMonth = now.getMonth() + 1;
 
-            getFamilyBillsData(currentYear, currentMonth).then(familyBills => {
+            // getFamilyBillsData(currentYear, currentMonth).then(familyBills => {
+            getAllFamilyBillsData(currentYear, currentMonth).then(familyBills => {
                 // 存储原始数据用于筛选
                 window.currentFamilyBills = familyBills;
                 window.currentFamilyBillsType = type;
